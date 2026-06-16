@@ -1,0 +1,12 @@
+{
+  "name": "aws-mcp",
+  "description": "AWS access via the AWS MCP Server, bridged through a native-binary proxy.",
+  "version": "0.1.0",
+  "author": {
+    "name": "AJ Beck",
+    "email": "aj@asteroidcomputing.com"
+  },
+  "homepage": "https://github.com/ajbeck/go-aws-mcp-proxy",
+  "repository": "https://github.com/ajbeck/go-aws-mcp-proxy",
+  "keywords": ["aws", "mcp", "proxy"]
+}
