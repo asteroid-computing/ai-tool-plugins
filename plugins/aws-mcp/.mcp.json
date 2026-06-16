@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "aws-proxy-public": {
+      "command": "${CLAUDE_PLUGIN_ROOT}/scripts/run.sh",
+      "args": ["https://aws-mcp.eu-central-1.api.aws/mcp", "--skip-auth"]
+    },
+    "aws-proxy-authenticated": {
+      "command": "${CLAUDE_PLUGIN_ROOT}/scripts/run.sh",
+      "args": ["https://aws-mcp.eu-central-1.api.aws/mcp", "--skip-auth=false"]
+    }
+  }
+}

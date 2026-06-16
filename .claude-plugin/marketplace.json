@@ -1,0 +1,15 @@
+{
+  "name": "asteroid-computing-tools",
+  "owner": {
+    "name": "AJ Beck",
+    "email": "aj@asteroidcomputing.com"
+  },
+  "description": "Asteroid Computing's catalog of Claude Code plugins.",
+  "plugins": [
+    {
+      "name": "aws-mcp",
+      "source": "./plugins/aws-mcp",
+      "description": "AWS access via the AWS MCP Server, bridged through a native-binary proxy."
+    }
+  ]
+}
