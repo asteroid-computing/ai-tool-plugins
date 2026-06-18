@@ -1,0 +1,42 @@
+name: Tag and Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version, with or without a leading v (e.g. 1.2.3 or v1.2.3)"
+        required: true
+        type: string
+      commit:
+        description: "Full commit SHA to tag (defaults to HEAD of main)"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Tag and create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          VERSION: ${{ inputs.version }}
+          COMMIT: ${{ inputs.commit }}
+        run: |
+          # Normalise the version to a single leading "v".
+          tag="v${VERSION#v}"
+          # Tag the supplied commit, or HEAD of main when none is given.
+          target="${COMMIT:-main}"
+
+          echo "Creating release $tag targeting $target"
+
+          # gh release create makes the tag at --target and publishes the
+          # release in one step.
+          gh release create "$tag" \
+            --repo "$REPO" \
+            --target "$target" \
+            --title "$tag" \
+            --generate-notes
