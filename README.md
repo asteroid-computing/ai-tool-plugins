@@ -28,8 +28,6 @@ Gives Claude AWS access through the [AWS MCP Server](https://docs.aws.amazon.com
 
 **Credentials:** the authenticated server inherits AWS credentials from the standard chain (environment variables, `AWS_PROFILE`, SSO, or an instance/container role). Region resolves from `AWS_REGION` or is inferred from the endpoint.
 
-> **Note:** while [`go-aws-mcp-proxy`](https://github.com/ajbeck/go-aws-mcp-proxy) is a private repository, the install hook needs read access — authenticate with `gh auth login` or set `GH_TOKEN`/`GITHUB_TOKEN`. Once the repo is public, no token is required.
-
 ## License
 
-See individual plugins for licensing.
+[Apache-2.0](./LICENSE).

@@ -5,11 +5,11 @@
 # installed version differs (or the binary is missing). If GitHub is
 # unreachable but a binary is already installed, the existing binary is kept.
 #
-# Auth: the source repo is private for now and will be made public later. The
-# script works across that transition by trying, in order:
-#   1. `gh` CLI (uses your gh login or GH_TOKEN)        — private + public
-#   2. a token (GH_TOKEN/GITHUB_TOKEN/`gh auth token`)  — private, via the API
-#   3. unauthenticated browser download                 — public only
+# Auth: the source repo is public, so no token is required. A token is still
+# used when available (raises GitHub API rate limits). Resolution order:
+#   1. `gh` CLI (uses your gh login or GH_TOKEN)
+#   2. a token (GH_TOKEN/GITHUB_TOKEN/`gh auth token`), via the API
+#   3. unauthenticated browser download
 #
 # Invoked two ways:
 #   - SessionStart hook (keeps the binary fresh)
@@ -83,7 +83,7 @@ if [ -z "$latest_tag" ]; then
     exit 0
   fi
   log "cannot resolve latest release and no binary is installed."
-  log "the source repo is private — authenticate with 'gh auth login' or set GH_TOKEN."
+  log "check network access to github.com (or set GH_TOKEN if rate-limited)."
   exit 1
 fi
 
