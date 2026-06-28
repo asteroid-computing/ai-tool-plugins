@@ -1,0 +1,37 @@
+{
+  "name": "aws-mcp",
+  "version": "0.1.0",
+  "description": "AWS access via the AWS MCP Server, bridged through a native-binary proxy.",
+  "author": {
+    "name": "AJ Beck",
+    "email": "aj@asteroidcomputing.com",
+    "url": "https://github.com/ajbeck"
+  },
+  "homepage": "https://github.com/ajbeck/go-aws-mcp-proxy",
+  "repository": "https://github.com/ajbeck/go-aws-mcp-proxy",
+  "license": "Apache-2.0",
+  "keywords": [
+    "aws",
+    "mcp",
+    "proxy"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "AWS MCP",
+    "shortDescription": "AWS MCP Server access through a native proxy",
+    "longDescription": "Guidance for routing AWS MCP Server tools between public documentation lookups and authenticated AWS API calls. The Claude package also includes a native aws-mcp-proxy launcher; Codex MCP bootstrap needs a separate compatibility pass before this manifest declares MCP servers.",
+    "developerName": "AJ Beck",
+    "category": "Cloud",
+    "capabilities": [
+      "Read"
+    ],
+    "websiteURL": "https://github.com/ajbeck/go-aws-mcp-proxy",
+    "defaultPrompt": [
+      "Choose the right AWS MCP server for this task.",
+      "Check whether this AWS call needs credentials.",
+      "Show the configured AWS MCP endpoint."
+    ],
+    "brandColor": "#FF9900",
+    "screenshots": []
+  }
+}
