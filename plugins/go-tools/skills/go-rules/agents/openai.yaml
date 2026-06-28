@@ -1,0 +1,6 @@
+interface:
+  display_name: "Go Rules"
+  short_description: "Apply the bundled Go 1.26 ruleset"
+  default_prompt: "Use $go-rules to write or revise Go code against the bundled Go 1.26 ruleset."
+policy:
+  allow_implicit_invocation: false

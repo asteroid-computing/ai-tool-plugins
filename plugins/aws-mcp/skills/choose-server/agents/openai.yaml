@@ -1,0 +1,6 @@
+interface:
+  display_name: "Choose AWS MCP Server"
+  short_description: "Route AWS MCP calls between public and authenticated servers"
+  default_prompt: "Use $choose-server to decide whether an AWS MCP tool needs public or authenticated access."
+policy:
+  allow_implicit_invocation: false
