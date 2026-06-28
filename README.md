@@ -18,7 +18,7 @@ codex plugin marketplace add asteroid-computing/ai-tool-plugins
 
 Then launch Codex and run `/plugins` to browse and install plugins from **Asteroid Computing Tools**.
 
-Codex marketplace metadata lives in [`.agents/plugins/marketplace.json`](.agents/plugins/marketplace.json). The first Codex pass adds marketplace/manifests only; the plugin compatibility review below calls out remaining Claude-specific behavior to port before treating every plugin as fully Codex-native.
+Codex marketplace metadata lives in [`.agents/plugins/marketplace.json`](.agents/plugins/marketplace.json). Plugins are kept dual-host where possible: Claude Code keeps its native metadata, and Codex-specific behavior lives in `.codex-plugin/plugin.json` and skill `agents/openai.yaml` sidecars.
 
 ## Validate plugins
 
@@ -50,7 +50,7 @@ Gives Claude AWS access through the [AWS MCP Server](https://docs.aws.amazon.com
 
 **Credentials:** the authenticated server inherits AWS credentials from the standard chain (environment variables, `AWS_PROFILE`, SSO, or an instance/container role). Region resolves from `AWS_REGION` or is inferred from the endpoint.
 
-**Codex status:** marketplace and plugin metadata are present. The shared `choose-server` skill keeps Claude explicit-invoke metadata; Codex-specific invocation policy lives in `agents/openai.yaml`. The current MCP launcher and install hook still use Claude-specific plugin environment variables, so the Codex manifest does not yet declare MCP servers.
+**Codex status:** marketplace, plugin metadata, skill metadata, and MCP server definitions are present. Codex does not currently pass Claude-style plugin root/data environment variables into MCP processes; its manifest uses `cwd: "."` so relative launchers run from the installed plugin root, and the proxy binary cache falls back to a plugin-local `.data` directory when no host-provided plugin data dir is available.
 
 ### `go-tools`
 

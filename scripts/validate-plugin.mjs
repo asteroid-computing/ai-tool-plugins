@@ -251,6 +251,42 @@ function validateMcpServerEntries(value, label, errors) {
     }
     if (!isObject(server)) {
       errors.push(`${label}.${name} must be an object`);
+      continue;
+    }
+    validateMcpServer(server, `${label}.${name}`, errors);
+  }
+}
+
+function validateMcpServer(server, label, errors) {
+  const hasCommand = server.command !== undefined;
+  const hasUrl = server.url !== undefined;
+  if (!hasCommand && !hasUrl) {
+    errors.push(`${label} must define command or url`);
+  }
+  if (hasCommand && !isNonEmptyString(server.command)) {
+    errors.push(`${label}.command must be a non-empty string`);
+  }
+  if (hasUrl && !isNonEmptyString(server.url)) {
+    errors.push(`${label}.url must be a non-empty string`);
+  }
+  if (
+    server.args !== undefined &&
+    (!Array.isArray(server.args) || !server.args.every((value) => isNonEmptyString(value)))
+  ) {
+    errors.push(`${label}.args must be an array of non-empty strings when present`);
+  }
+  if (server.cwd !== undefined && !isNonEmptyString(server.cwd)) {
+    errors.push(`${label}.cwd must be a non-empty string when present`);
+  }
+  if (server.env !== undefined) {
+    if (!isObject(server.env)) {
+      errors.push(`${label}.env must be an object when present`);
+      return;
+    }
+    for (const [key, value] of Object.entries(server.env)) {
+      if (!isNonEmptyString(key) || !isNonEmptyString(value)) {
+        errors.push(`${label}.env entries must be non-empty string pairs`);
+      }
     }
   }
 }

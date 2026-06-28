@@ -16,10 +16,28 @@
     "proxy"
   ],
   "skills": "./skills/",
+  "mcpServers": {
+    "aws-proxy-public": {
+      "command": "./scripts/run.sh",
+      "args": [
+        "https://aws-mcp.eu-central-1.api.aws/mcp",
+        "--skip-auth"
+      ],
+      "cwd": "."
+    },
+    "aws-proxy-authenticated": {
+      "command": "./scripts/run.sh",
+      "args": [
+        "https://aws-mcp.eu-central-1.api.aws/mcp",
+        "--skip-auth=false"
+      ],
+      "cwd": "."
+    }
+  },
   "interface": {
     "displayName": "AWS MCP",
     "shortDescription": "AWS MCP Server access through a native proxy",
-    "longDescription": "Guidance for routing AWS MCP Server tools between public documentation lookups and authenticated AWS API calls. The Claude package also includes a native aws-mcp-proxy launcher; Codex MCP bootstrap needs a separate compatibility pass before this manifest declares MCP servers.",
+    "longDescription": "Guidance for routing AWS MCP Server tools between public documentation lookups and authenticated AWS API calls. Includes native aws-mcp-proxy launchers for Claude Code and Codex.",
     "developerName": "AJ Beck",
     "category": "Cloud",
     "capabilities": [

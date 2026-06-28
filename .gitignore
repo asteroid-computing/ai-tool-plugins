@@ -1,5 +1,8 @@
 # Claude Code local, per-machine settings (paths, permission grants)
 .claude/settings.local.json
 
+# Local plugin runtime caches
+plugins/*/.data/
+
 # macOS
 .DS_Store

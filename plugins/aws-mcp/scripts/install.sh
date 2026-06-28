@@ -12,17 +12,44 @@
 #   3. unauthenticated browser download
 #
 # Invoked two ways:
-#   - SessionStart hook (keeps the binary fresh)
+#   - SessionStart hook in Claude Code (keeps the binary fresh)
 #   - run.sh, when the binary is missing at MCP launch (first-run safety net)
 set -uo pipefail
 
 REPO="ajbeck/go-aws-mcp-proxy"
 BIN_NAME="aws-mcp-proxy"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PLUGIN_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
-: "${CLAUDE_PLUGIN_DATA:?CLAUDE_PLUGIN_DATA is not set}"
-BIN_DIR="${CLAUDE_PLUGIN_DATA}/bin"
+plugin_data_dir() {
+  if [ -n "${CLAUDE_PLUGIN_DATA:-}" ]; then
+    printf '%s\n' "$CLAUDE_PLUGIN_DATA"
+    return
+  fi
+  if [ -n "${CODEX_PLUGIN_DATA:-}" ]; then
+    printf '%s\n' "$CODEX_PLUGIN_DATA"
+    return
+  fi
+  if [ -n "${AWS_MCP_PLUGIN_DATA:-}" ]; then
+    printf '%s\n' "$AWS_MCP_PLUGIN_DATA"
+    return
+  fi
+  if mkdir -p "${PLUGIN_ROOT}/.data" 2>/dev/null; then
+    printf '%s\n' "${PLUGIN_ROOT}/.data"
+    return
+  fi
+  if [ -n "${XDG_CACHE_HOME:-}" ]; then
+    printf '%s\n' "${XDG_CACHE_HOME}/ai-tool-plugins/aws-mcp"
+    return
+  fi
+  : "${HOME:?HOME is not set}"
+  printf '%s\n' "${HOME}/.cache/ai-tool-plugins/aws-mcp"
+}
+
+DATA_DIR="$(plugin_data_dir)"
+BIN_DIR="${DATA_DIR}/bin"
 BIN="${BIN_DIR}/${BIN_NAME}"
-VERSION_FILE="${CLAUDE_PLUGIN_DATA}/.installed-version"
+VERSION_FILE="${DATA_DIR}/.installed-version"
 
 log() { printf '[aws-mcp-proxy install] %s\n' "$*" >&2; }
 
