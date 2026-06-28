@@ -28,6 +28,19 @@ Gives Claude AWS access through the [AWS MCP Server](https://docs.aws.amazon.com
 
 **Credentials:** the authenticated server inherits AWS credentials from the standard chain (environment variables, `AWS_PROFILE`, SSO, or an instance/container role). Region resolves from `AWS_REGION` or is inferred from the endpoint.
 
+### `go-tools`
+
+Skills for writing and reviewing idiomatic Go, targeting **Go 1.26**. The rules are distilled from [Effective Go](https://go.dev/doc/effective_go), the [Google Go Style Guide](https://google.github.io/styleguide/go/), and the Go 1.26 release notes.
+
+```shell
+/plugin install go-tools@asteroid-computing-tools
+```
+
+**What it does**
+
+- The `go-rules` skill loads automatically when Claude writes, reviews, or discusses Go code. It routes to a set of topic references (naming, errors, types, concurrency, testing, imports, control flow, doc comments) using progressive disclosure — only the rule files relevant to the task are read.
+- The ruleset covers post-training-cutoff Go features (Go 1.21–1.26: `min`/`max`/`clear`, `slices`/`maps`/`cmp`, iterators, `errors.AsType`, `new(expr)`, and the Go 1.26 `crypto`/`go fix` changes), so generated and reviewed code stays current rather than reverting to older idioms.
+
 ## License
 
 [Apache-2.0](./LICENSE).

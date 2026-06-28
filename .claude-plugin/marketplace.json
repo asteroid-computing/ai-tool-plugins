@@ -10,6 +10,11 @@
       "name": "aws-mcp",
       "source": "./plugins/aws-mcp",
       "description": "AWS access via the AWS MCP Server, bridged through a native-binary proxy."
+    },
+    {
+      "name": "go-tools",
+      "source": "./plugins/go-tools",
+      "description": "Skills for writing and reviewing idiomatic Go (Go 1.26)."
     }
   ]
 }
