@@ -9,11 +9,11 @@ disable-model-invocation: true
 
 This skill reviews existing Go code against the go-rules ruleset. It spawns five parallel reviewer sub-agents, runs deterministic tool checks (`go vet`, dependency freshness), classifies findings by severity, and produces a prioritised report with rule citations. Default scope is files changed vs `main`; `--apply` opts into auto-fixing mechanical and complete-local fixes. Always report-only without `--apply`.
 
-This skill is **explicit-invoke only** (`disable-model-invocation: true`): it runs when you call `/go-tools:go-review`, not automatically — Claude won't decide to spawn a five-agent review on its own. Use it to _evaluate_ existing Go code; to _write_ new Go, use the go-rules skill directly.
+This skill is **explicit-invoke only** (`disable-model-invocation: true` for Claude Code; `agents/openai.yaml` sets `allow_implicit_invocation: false` for Codex). It runs when the user explicitly invokes or selects `go-review`, not automatically. Use it to _evaluate_ existing Go code; to _write_ new Go, use the go-rules skill directly.
 
 **Rules version:** Go 1.26 target.
 
-**Rule sources:** the ruleset is bundled in the sibling `go-rules` skill. Every rule file named in this document (`core.md`, `errors.md`, …) lives at `${CLAUDE_PLUGIN_ROOT}/skills/go-rules/references/`. Read them from there.
+**Rule sources:** the ruleset is bundled in the sibling `go-rules` skill. Every rule file named in this document (`core.md`, `errors.md`, …) lives under the installed plugin root at `skills/go-rules/references/` (for Claude Code, `${CLAUDE_PLUGIN_ROOT}/skills/go-rules/references/`). Read them from there.
 
 ---
 
@@ -91,7 +91,7 @@ When ambiguous, the agent flags the higher severity and explains the assumption:
 
 ## Sub-Agent Decomposition
 
-Five focus areas, dispatched in parallel as `Agent` calls with `subagent_type: "general-purpose"`. Each agent loads a subset of rule files (from `${CLAUDE_PLUGIN_ROOT}/skills/go-rules/references/`) but only reports issues within its focus area.
+Five focus areas, dispatched in parallel using the host's sub-agent mechanism (Claude Code `Agent` calls with `subagent_type: "general-purpose"`; Codex multi-agent tools when available). Each agent loads a subset of rule files from the sibling `go-rules/references/` directory but only reports issues within its focus area.
 
 | Agent                    | Loads                                                   | Focus                                                                                                                                                          |
 | ------------------------ | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -165,16 +165,18 @@ The skill executes this sequence in the main turn:
      (`import "C"`), and non-default build tags. Collect transparency notes
      for the report.
 
-8. Read all rule files in parallel (Read tool)
-   - From `${CLAUDE_PLUGIN_ROOT}/skills/go-rules/references/`. The union
+8. Read all rule files in parallel
+   - From the sibling `go-rules/references/` directory under the installed plugin root. The union
      across all five agents — typically all 10 rule files, since every file
      is loaded by at least one agent.
    - If these files are unreadable, abort before dispatch (see Failure Modes:
      "Ruleset not found").
 
 9. Dispatch the five sub-agents in parallel
-   - Single message containing five Agent tool calls with subagent_type:
-     "general-purpose". Each agent gets the prompt template (below) with its
+   - Use the host's parallel sub-agent facility. In Claude Code, send a single
+     message containing five `Agent` tool calls with `subagent_type:
+     "general-purpose"`. In Codex, use the available multi-agent tools with the
+     same five focus prompts. Each agent gets the prompt template (below) with its
      focus, its rules inlined, and the file list with origin tags.
 
 10. Aggregate findings
@@ -484,7 +486,7 @@ If `--pr-snippet` is passed without `--apply` or evidence of prior fix work, the
 
 ### Ruleset not found
 
-The five sub-agents cite rules read from `${CLAUDE_PLUGIN_ROOT}/skills/go-rules/references/`. Before dispatching them (workflow step 8), confirm those files are readable. If the directory is missing or empty — the `go-rules` skill was removed, renamed, or never installed — abort with a clear message ("go-rules ruleset not found at `${CLAUDE_PLUGIN_ROOT}/skills/go-rules/references/` — install or enable the go-rules skill") rather than dispatching agents that would produce uncitable findings. The `go vet` and dependency-freshness checks don't depend on the ruleset; report them if they ran and surfaced anything useful.
+The five sub-agents cite rules read from the sibling `go-rules/references/` directory under the installed plugin root. Before dispatching them (workflow step 8), confirm those files are readable. If the directory is missing or empty — the `go-rules` skill was removed, renamed, or never installed — abort with a clear message ("go-rules ruleset not found under the installed plugin root at `skills/go-rules/references/` — install or enable the go-rules skill") rather than dispatching agents that would produce uncitable findings. The `go vet` and dependency-freshness checks don't depend on the ruleset; report them if they ran and surfaced anything useful.
 
 ### Sub-agent fails or times out
 
