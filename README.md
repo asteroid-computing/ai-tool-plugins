@@ -1,12 +1,34 @@
 # asteroid-computing-tools
 
-Asteroid Computing's [Claude Code plugin marketplace](https://code.claude.com/docs/en/plugin-marketplaces). A catalog of plugins you can install into Claude Code.
+Asteroid Computing's plugin marketplace for Claude Code and Codex.
 
 ## Add the marketplace
+
+### Claude Code
 
 ```shell
 /plugin marketplace add asteroid-computing/ai-tool-plugins
 ```
+
+### Codex
+
+```shell
+codex plugin marketplace add asteroid-computing/ai-tool-plugins
+```
+
+Then launch Codex and run `/plugins` to browse and install plugins from **Asteroid Computing Tools**.
+
+Codex marketplace metadata lives in [`.agents/plugins/marketplace.json`](.agents/plugins/marketplace.json). The first Codex pass adds marketplace/manifests only; the plugin compatibility review below calls out remaining Claude-specific behavior to port before treating every plugin as fully Codex-native.
+
+## Validate plugins
+
+This repo uses a dependency-free Node validator for shared marketplace and plugin metadata:
+
+```shell
+node scripts/validate-plugin.mjs plugins/aws-mcp
+```
+
+Run it without arguments to validate every plugin discovered under `plugins/`. Use `--strict-codex` when you specifically want Codex-only ingestion checks; that mode may flag Claude-specific metadata that is intentionally kept in shared skills.
 
 ## Plugins
 
@@ -28,6 +50,8 @@ Gives Claude AWS access through the [AWS MCP Server](https://docs.aws.amazon.com
 
 **Credentials:** the authenticated server inherits AWS credentials from the standard chain (environment variables, `AWS_PROFILE`, SSO, or an instance/container role). Region resolves from `AWS_REGION` or is inferred from the endpoint.
 
+**Codex status:** marketplace and plugin metadata are present. The shared `choose-server` skill keeps Claude explicit-invoke metadata; Codex-specific invocation policy lives in `agents/openai.yaml`. The current MCP launcher and install hook still use Claude-specific plugin environment variables, so the Codex manifest does not yet declare MCP servers.
+
 ### `go-tools`
 
 Skills for writing and reviewing idiomatic Go, targeting **Go 1.26**. The rules are distilled from [Effective Go](https://go.dev/doc/effective_go), the [Google Go Style Guide](https://google.github.io/styleguide/go/), and the Go 1.26 release notes.
@@ -41,6 +65,8 @@ Skills for writing and reviewing idiomatic Go, targeting **Go 1.26**. The rules 
 - **`/go-tools:go-rules`** — explicit-invoke. Routes to a topic-organised ruleset (naming, errors, types, concurrency, testing, imports, control flow, doc comments) using progressive disclosure, so only the rule files relevant to the task are read. The ruleset covers post-training-cutoff Go features (Go 1.21–1.26: `min`/`max`/`clear`, `slices`/`maps`/`cmp`, iterators, `errors.AsType`, `new(expr)`, and the Go 1.26 `crypto`/`go fix` changes), keeping generated and reviewed code current rather than reverting to older idioms.
 - **`/go-tools:go-review`** — explicit-invoke. Audits existing Go against the `go-rules` ruleset: dispatches five parallel reviewer sub-agents (correctness, API design, idiom, modernisation, test quality), runs `go vet` and a dependency-freshness check (`go list -m -u`, `govulncheck`), and prints a severity-classified report with rule citations. `--apply` auto-applies only mechanical and complete-local fixes.
 - **`go-docs`** — auto-loads when a Go API needs verifying. Uses `scut gotools doc` (an agent-tuned `go doc`) to look up package and symbol documentation, including external modules at a specific version. Requires the [`scut`](https://github.com/ajbeck/scut) CLI on your PATH; the skill points you to install instructions if it's missing.
+
+**Codex status:** marketplace, plugin metadata, and skill metadata are present. Shared skills keep Claude-specific invocation metadata where needed; Codex-specific invocation policy lives in each skill's `agents/openai.yaml`.
 
 ## License
 
