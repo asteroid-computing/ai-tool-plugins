@@ -2,6 +2,7 @@
 
 name: go-rules
 description: This skill should be used when writing, reviewing, modifying, or discussing Go code — even one-line changes or simple style questions. Triggers include "write a Go function", "is this idiomatic Go", "review my Go code", "how should I name this package", "wrap this error", "is this goroutine safe", "table-driven test", or any task touching Go naming, errors, types, generics, concurrency, testing, imports, control flow, or doc comments. Codifies Go 1.26 conventions from Effective Go and the Google Go Style Guide that supersede older pre-trained intuition.
+disable-model-invocation: true
 ---
 
 # Go Rules Index
