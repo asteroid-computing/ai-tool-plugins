@@ -8,6 +8,19 @@ description: This skill should be used whenever working with Go and an authorita
 
 Go API details — signatures, return types, error contracts — drift between versions and are easy to misremember, especially for external modules. Look them up with `scut gotools doc` instead of recalling them from memory whenever accuracy matters (before calling an unfamiliar function, or when the user asks how an API behaves).
 
+## Why `scut gotools doc` over `go doc`
+
+`go doc` can only see packages that are already part of the current build: a dependency listed in the project's `go.mod`, or a module already downloaded into the local module cache. To look up anything else, you must first run `go get` (which mutates `go.mod`/`go.sum`) or be standing inside the right module to begin with.
+
+`scut gotools doc` has no such constraint — this is its main advantage:
+
+- **The module need not be in the project's `go.mod`.** Look up any public module by import path, including from a directory that is not a Go module at all.
+- **The module need not already be in the local Go cache.** It is resolved on demand; you don't have to pre-fetch it with `go get`.
+- **No side effects.** Nothing is written to `go.mod`, `go.sum`, or the build list — the project's dependency set is left untouched.
+- **Version-pinnable** via `--module-version=<query>` (default `latest`), again without adding the dependency.
+
+For packages already in the build (the standard library, current dependencies) it behaves like `go doc`; the advantage shows up for everything outside it — which is exactly the common case when checking an unfamiliar third-party API. The one requirement for an out-of-build lookup is network access to the module proxy (it fetches on demand).
+
 ## Step 1 — confirm `scut` is installed
 
 This skill depends on the `scut` binary. Before the first lookup in a session, verify it is on PATH:
