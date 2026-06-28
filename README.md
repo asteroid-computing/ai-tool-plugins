@@ -30,6 +30,8 @@ node scripts/validate-plugin.mjs plugins/aws-mcp
 
 Run it without arguments to validate every plugin discovered under `plugins/`. Use `--strict-codex` when you specifically want Codex-only ingestion checks; that mode may flag Claude-specific metadata that is intentionally kept in shared skills.
 
+See [SECURITY.md](./SECURITY.md) for runtime download, credential handling, and vulnerability reporting notes.
+
 ## Plugins
 
 ### `aws-mcp`

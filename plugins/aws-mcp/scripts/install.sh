@@ -5,11 +5,10 @@
 # installed version differs (or the binary is missing). If GitHub is
 # unreachable but a binary is already installed, the existing binary is kept.
 #
-# Auth: the source repo is public, so no token is required. A token is still
-# used when available (raises GitHub API rate limits). Resolution order:
-#   1. `gh` CLI (uses your gh login or GH_TOKEN)
-#   2. a token (GH_TOKEN/GITHUB_TOKEN/`gh auth token`), via the API
-#   3. unauthenticated browser download
+# Auth: the source repo is public, so no token is required. Explicit
+# GH_TOKEN/GITHUB_TOKEN is used when set (raises GitHub API rate limits);
+# otherwise downloads are unauthenticated. The installer does not read `gh`
+# CLI credentials implicitly.
 #
 # Invoked two ways:
 #   - SessionStart hook in Claude Code (keeps the binary fresh)
@@ -68,15 +67,7 @@ esac
 ASSET="${BIN_NAME}-${os}-${arch}.tar.gz"
 
 # --- Resolve auth ----------------------------------------------------------
-have_gh=0
-command -v gh >/dev/null 2>&1 && have_gh=1
 token="${GH_TOKEN:-${GITHUB_TOKEN:-}}"
-if [ -z "$token" ] && [ "$have_gh" = 1 ]; then
-  token="$(gh auth token 2>/dev/null || true)"
-fi
-# Let child `gh` calls see the resolved token; leave gh's own keyring auth
-# untouched when we have no token.
-[ -n "$token" ] && export GH_TOKEN="$token"
 
 # Auth-aware curl wrapper (avoids conditional-header word-splitting bugs).
 gh_curl() {
@@ -98,11 +89,7 @@ latest_json() {
 }
 
 # --- Resolve the latest release tag ----------------------------------------
-if [ "$have_gh" = 1 ]; then
-  latest_tag="$(gh release view --repo "$REPO" --json tagName -q .tagName 2>/dev/null)"
-else
-  latest_tag="$(latest_json | grep -m1 '"tag_name"' | sed -E 's/.*"tag_name": *"([^"]+)".*/\1/')"
-fi
+latest_tag="$(latest_json | grep -m1 '"tag_name"' | sed -E 's/.*"tag_name": *"([^"]+)".*/\1/')"
 
 if [ -z "$latest_tag" ]; then
   if [ -x "$BIN" ]; then
@@ -128,22 +115,19 @@ trap 'rm -rf "$tmp"' EXIT
 download_one() { # $1 = asset filename -> $tmp/$1 ; returns nonzero on failure
   local name="$1" out url
   out="${tmp}/${1}"
-  if [ "$have_gh" = 1 ]; then
-    gh release download "$latest_tag" --repo "$REPO" \
-      --pattern "$name" --dir "$tmp" --clobber >/dev/null 2>&1
-  elif [ -n "$token" ]; then
+  if [ -n "$token" ]; then
     url="$(latest_json | A="$name" python3 -c \
       'import sys,json,os; d=json.load(sys.stdin); print(next((a["url"] for a in d.get("assets",[]) if a["name"]==os.environ["A"]),""))' \
       2>/dev/null)"
     [ -z "$url" ] && return 1
     # -L (not --location-trusted): drop the auth header on the cross-host S3 redirect.
-    curl -fL -H "Authorization: Bearer $token" -H "Accept: application/octet-stream" \
+    curl -fsSL -H "Authorization: Bearer $token" -H "Accept: application/octet-stream" \
       -o "$out" "$url"
   else
     url="$(latest_json | grep -o '"browser_download_url": *"[^"]*"' \
       | sed -E 's/.*"(https[^"]+)".*/\1/' | grep -m1 -- "/${name}$")"
     [ -z "$url" ] && return 1
-    curl -fL -o "$out" "$url"
+    curl -fsSL -o "$out" "$url"
   fi
 }
 
