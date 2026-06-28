@@ -36,10 +36,11 @@ Skills for writing and reviewing idiomatic Go, targeting **Go 1.26**. The rules 
 /plugin install go-tools@asteroid-computing-tools
 ```
 
-**What it does**
+**Skills**
 
-- The `go-rules` skill loads automatically when Claude writes, reviews, or discusses Go code. It routes to a set of topic references (naming, errors, types, concurrency, testing, imports, control flow, doc comments) using progressive disclosure — only the rule files relevant to the task are read.
-- The ruleset covers post-training-cutoff Go features (Go 1.21–1.26: `min`/`max`/`clear`, `slices`/`maps`/`cmp`, iterators, `errors.AsType`, `new(expr)`, and the Go 1.26 `crypto`/`go fix` changes), so generated and reviewed code stays current rather than reverting to older idioms.
+- **`/go-tools:go-rules`** — explicit-invoke. Routes to a topic-organised ruleset (naming, errors, types, concurrency, testing, imports, control flow, doc comments) using progressive disclosure, so only the rule files relevant to the task are read. The ruleset covers post-training-cutoff Go features (Go 1.21–1.26: `min`/`max`/`clear`, `slices`/`maps`/`cmp`, iterators, `errors.AsType`, `new(expr)`, and the Go 1.26 `crypto`/`go fix` changes), keeping generated and reviewed code current rather than reverting to older idioms.
+- **`/go-tools:go-review`** — explicit-invoke. Audits existing Go against the `go-rules` ruleset: dispatches five parallel reviewer sub-agents (correctness, API design, idiom, modernisation, test quality), runs `go vet` and a dependency-freshness check (`go list -m -u`, `govulncheck`), and prints a severity-classified report with rule citations. `--apply` auto-applies only mechanical and complete-local fixes.
+- **`go-docs`** — auto-loads when a Go API needs verifying. Uses `scut gotools doc` (an agent-tuned `go doc`) to look up package and symbol documentation, including external modules at a specific version. Requires the [`scut`](https://github.com/ajbeck/scut) CLI on your PATH; the skill points you to install instructions if it's missing.
 
 ## License
 
