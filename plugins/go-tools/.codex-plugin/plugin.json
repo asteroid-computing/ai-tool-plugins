@@ -1,0 +1,41 @@
+{
+  "name": "go-tools",
+  "version": "0.1.0",
+  "description": "Skills for writing and reviewing idiomatic Go (Go 1.26), distilled from Effective Go and the Google Go Style Guide.",
+  "author": {
+    "name": "AJ Beck",
+    "email": "aj@asteroidcomputing.com",
+    "url": "https://github.com/ajbeck"
+  },
+  "homepage": "https://github.com/asteroid-computing/ai-tool-plugins",
+  "repository": "https://github.com/asteroid-computing/ai-tool-plugins",
+  "license": "Apache-2.0",
+  "keywords": [
+    "go",
+    "golang",
+    "style-guide",
+    "code-review",
+    "idiomatic"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Go Tools",
+    "shortDescription": "Idiomatic Go writing and review skills",
+    "longDescription": "Skills for writing, reviewing, and checking Go code against a Go 1.26 ruleset covering naming, errors, types, concurrency, testing, imports, control flow, documentation, and package API design.",
+    "developerName": "AJ Beck",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/asteroid-computing/ai-tool-plugins",
+    "defaultPrompt": [
+      "Review this Go package for idioms.",
+      "Write this Go function using current conventions.",
+      "Look up the docs for this Go API."
+    ],
+    "brandColor": "#00ADD8",
+    "screenshots": []
+  }
+}
