@@ -1,6 +1,6 @@
 ---
 name: go-release-notes
-description: This skill should be used when working with Go code: writing, reviewing, modifying, modernizing, debugging, explaining, or answering questions about Go. It loads official Go release notes for the target Go version declared by go.mod, go.work, toolchain, or the user request, so Codex accounts for newer language, standard-library, command, runtime, and toolchain changes such as Go 1.26 new(expr), errors.AsType, go fix modernizers, crypto randomness changes, and testing artifacts. Fetches official Go release notes from go.dev and caches them in the host plugin data directory when available.
+description: This skill should be used when working with Go code: writing, reviewing, modifying, modernizing, debugging, explaining, or answering questions about Go. It loads official Go release notes for the target Go version declared by go.mod, go.work, toolchain, or the user request, so the agent accounts for newer language, standard-library, command, runtime, and toolchain changes such as Go 1.26 new(expr), errors.AsType, go fix modernizers, crypto randomness changes, and testing artifacts. Fetches official Go release notes from go.dev and caches them in the host plugin data directory when available.
 ---
 
 # Go Release Notes
@@ -26,7 +26,7 @@ Do not rely on memory for post-cutoff Go behavior. Determine the target Go versi
 node "${CLAUDE_SKILL_DIR:-plugins/go-tools/skills/go-release-notes}/scripts/go_release_notes.mjs" --project .
 ```
 
-For Codex or other hosts that do not expand `${CLAUDE_SKILL_DIR}`, resolve the script path relative to this skill directory and run the same command.
+For hosts that do not expand `${CLAUDE_SKILL_DIR}`, resolve the script path relative to this skill directory and run the same command.
 
 Pass an explicit baseline whenever the session provides one:
 
