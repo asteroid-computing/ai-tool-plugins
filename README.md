@@ -56,7 +56,7 @@ Gives Claude AWS access through the [AWS MCP Server](https://docs.aws.amazon.com
 
 ### `go-tools`
 
-Skills for writing and reviewing idiomatic Go, targeting **Go 1.26**. The rules are distilled from [Effective Go](https://go.dev/doc/effective_go), the [Google Go Style Guide](https://google.github.io/styleguide/go/), and the Go 1.26 release notes.
+Skills for writing and reviewing idiomatic Go, targeting **Go 1.26**. The rules are distilled from [Effective Go](https://go.dev/doc/effective_go), the [Google Go Style Guide](https://google.github.io/styleguide/go/), and Go release notes.
 
 ```shell
 /plugin install go-tools@asteroid-computing-tools
@@ -67,6 +67,7 @@ Skills for writing and reviewing idiomatic Go, targeting **Go 1.26**. The rules 
 - **`/go-tools:go-rules`** — explicit-invoke. Routes to a topic-organised ruleset (naming, errors, types, concurrency, testing, imports, control flow, doc comments) using progressive disclosure, so only the rule files relevant to the task are read. The ruleset covers post-training-cutoff Go features (Go 1.21–1.26: `min`/`max`/`clear`, `slices`/`maps`/`cmp`, iterators, `errors.AsType`, `new(expr)`, and the Go 1.26 `crypto`/`go fix` changes), keeping generated and reviewed code current rather than reverting to older idioms.
 - **`/go-tools:go-review`** — explicit-invoke. Audits existing Go against the `go-rules` ruleset: dispatches five parallel reviewer sub-agents (correctness, API design, idiom, modernisation, test quality), runs `go vet` and a dependency-freshness check (`go list -m -u`, `govulncheck`), and prints a severity-classified report with rule citations. `--apply` auto-applies only mechanical and complete-local fixes.
 - **`go-docs`** — auto-loads when a Go API needs verifying. Uses `scut gotools doc` (an agent-tuned `go doc`) to look up package and symbol documentation, including external modules at a specific version. Requires the [`scut`](https://github.com/ajbeck/scut) CLI on your PATH; the skill points you to install instructions if it's missing.
+- **`go-release-notes`** — auto-loads when a Go task depends on release behavior newer than the model can safely recall. It reads the module's `go.mod`, fetches official release notes from `go.dev` for each missing Go minor version, and caches them in the host plugin data directory when available.
 
 **Codex status:** marketplace, plugin metadata, and skill metadata are present. Shared skills keep Claude-specific invocation metadata where needed; Codex-specific invocation policy lives in each skill's `agents/openai.yaml`.
 

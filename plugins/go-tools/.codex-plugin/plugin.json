@@ -1,7 +1,7 @@
 {
   "name": "go-tools",
   "version": "0.1.0",
-  "description": "Skills for writing and reviewing idiomatic Go (Go 1.26), distilled from Effective Go and the Google Go Style Guide.",
+  "description": "Skills for writing and reviewing idiomatic Go (Go 1.26), with release-note lookup for target Go versions.",
   "author": {
     "name": "AJ Beck",
     "email": "aj@asteroidcomputing.com",
@@ -21,7 +21,7 @@
   "interface": {
     "displayName": "Go Tools",
     "shortDescription": "Idiomatic Go writing and review skills",
-    "longDescription": "Skills for writing, reviewing, and checking Go code against a Go 1.26 ruleset covering naming, errors, types, concurrency, testing, imports, control flow, documentation, and package API design.",
+    "longDescription": "Skills for writing, reviewing, and checking Go code against a Go 1.26 ruleset covering naming, errors, types, concurrency, testing, imports, control flow, documentation, package API design, and official Go release notes for target module versions.",
     "developerName": "AJ Beck",
     "category": "Developer Tools",
     "capabilities": [
@@ -33,7 +33,8 @@
     "defaultPrompt": [
       "Review this Go package for idioms.",
       "Write this Go function using current conventions.",
-      "Look up the docs for this Go API."
+      "Look up the docs for this Go API.",
+      "Load Go release notes for this module."
     ],
     "brandColor": "#00ADD8",
     "screenshots": []

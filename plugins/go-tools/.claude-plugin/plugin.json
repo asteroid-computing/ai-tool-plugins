@@ -1,6 +1,6 @@
 {
   "name": "go-tools",
-  "description": "Skills for writing and reviewing idiomatic Go (Go 1.26), distilled from Effective Go and the Google Go Style Guide.",
+  "description": "Skills for writing and reviewing idiomatic Go (Go 1.26), with release-note lookup for target Go versions.",
   "version": "0.1.0",
   "license": "Apache-2.0",
   "author": {
