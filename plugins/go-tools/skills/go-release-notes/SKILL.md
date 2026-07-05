@@ -1,6 +1,6 @@
 ---
 name: go-release-notes
-description: This skill should be used when working on Go code where language, standard-library, command, toolchain, or module behavior may depend on Go release changes newer than the model's knowledge. Triggers include Go modules with a go.mod or go.work file, questions about upgrading Go, modernizing Go code, using a Go feature added in a recent release, checking whether an API exists in a target Go version, or reviewing code against the Go version declared by go.mod. Fetches official Go release notes from go.dev and caches them in the host plugin data directory when available.
+description: This skill should be used when working with Go code: writing, reviewing, modifying, modernizing, debugging, explaining, or answering questions about Go. It loads official Go release notes for the target Go version declared by go.mod, go.work, toolchain, or the user request, so Codex accounts for newer language, standard-library, command, runtime, and toolchain changes such as Go 1.26 new(expr), errors.AsType, go fix modernizers, crypto randomness changes, and testing artifacts. Fetches official Go release notes from go.dev and caches them in the host plugin data directory when available.
 ---
 
 # Go Release Notes
@@ -36,6 +36,18 @@ node /path/to/go-release-notes/scripts/go_release_notes.mjs --project . --from=1
 
 4. Read every `text_path` printed by the helper before continuing the Go task.
 5. Mention the release-note versions used when the answer or code change depends on them.
+
+## Applying Loaded Notes
+
+After reading the release notes, let them override older Go assumptions. This matters for ordinary coding and review, not only explicit upgrade requests.
+
+For Go 1.26 and later:
+
+- Treat `new(expr)` as valid Go. It returns a pointer to a new value initialized from `expr`, and is useful for optional pointer fields such as JSON or protobuf structs. Do not reject `new(yearsSince(born))` as invalid based on older Go knowledge.
+- Prefer `errors.AsType[T]` over boilerplate `errors.As` patterns when the target version supports it and the code benefits from type-safe extraction.
+- Account for the rewritten `go fix` command. For modernization tasks, consider `go fix` as the standard tool for applying Go modernizers, inspect its diff, and still run the project's tests. Do not hand-roll a modernization that `go fix` already covers unless the user needs a custom change or the automated diff is unsuitable.
+- Watch for release-note changes that affect tests and cryptography, especially crypto APIs that now ignore caller-provided randomness and `testing/cryptotest.SetGlobalRandom` for deterministic tests.
+- Use `T.ArtifactDir`, `B.ArtifactDir`, or `F.ArtifactDir` for test artifacts when the target version supports them instead of ad hoc temp-output conventions.
 
 ## Helper Behavior
 
