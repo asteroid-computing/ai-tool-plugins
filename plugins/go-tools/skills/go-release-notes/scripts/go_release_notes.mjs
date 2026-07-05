@@ -2,6 +2,7 @@
 
 import fs from "node:fs";
 import https from "node:https";
+import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
@@ -256,13 +257,39 @@ function resolveCacheDir(override) {
     process.env.CODEX_PLUGIN_DATA ||
     process.env.GO_TOOLS_PLUGIN_DATA ||
     process.env.ASTEROID_GO_TOOLS_PLUGIN_DATA;
+
   if (envDir) {
-    return path.join(path.resolve(envDir), "go-release-notes");
+    return requireWritableDir(path.join(path.resolve(envDir), "go-release-notes"));
   }
 
   const scriptDir = path.dirname(fileURLToPath(import.meta.url));
   const pluginRoot = path.resolve(scriptDir, "../../..");
-  return path.join(pluginRoot, ".data", "go-release-notes");
+  const pluginCandidates =
+    path.basename(pluginRoot) === ".agents"
+      ? []
+      : [path.join(pluginRoot, ".data", "go-release-notes")];
+  return firstWritableDir([
+    ...pluginCandidates,
+    path.join(os.tmpdir(), "go-tools", "go-release-notes"),
+  ]);
+}
+
+function firstWritableDir(candidates) {
+  const failures = [];
+  for (const candidate of candidates) {
+    try {
+      return requireWritableDir(candidate);
+    } catch (error) {
+      failures.push(`${candidate}: ${error.message}`);
+    }
+  }
+  throw new Error(`no writable release-note cache directory found (${failures.join("; ")})`);
+}
+
+function requireWritableDir(dir) {
+  fs.mkdirSync(dir, { recursive: true });
+  fs.accessSync(dir, fs.constants.W_OK);
+  return dir;
 }
 
 async function ensureReleaseNote(version, cacheDir, refresh) {

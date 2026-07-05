@@ -43,7 +43,7 @@ The helper:
 
 - Fetches official release notes from `https://go.dev/doc/go1.N`.
 - Caches both the source HTML and extracted text in the plugin data directory.
-- Uses `CLAUDE_PLUGIN_DATA` for Claude Code, `CODEX_PLUGIN_DATA` if a Codex host provides it, then `GO_TOOLS_PLUGIN_DATA`, then a plugin-local `.data` fallback.
+- Uses `CLAUDE_PLUGIN_DATA` for Claude Code, `CODEX_PLUGIN_DATA` if a Codex host provides it, then `GO_TOOLS_PLUGIN_DATA`, then a plugin-local `.data` fallback for plugin installs. If the skill is running from a repo `.agents` directory, or no plugin-local cache is writable, uses a temp cache.
 - Reuses cached files unless `--refresh` is passed.
 - Prints a machine-readable summary with `--json`.
 
