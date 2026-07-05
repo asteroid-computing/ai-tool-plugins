@@ -1,6 +1,6 @@
 interface:
   display_name: "Go Release Notes"
   short_description: "Load Go release notes for target versions"
-  default_prompt: "Use $go-release-notes to load relevant Go release notes before updating this module."
+  default_prompt: "Use $go-release-notes to load target-version release notes before working with this Go code."
 policy:
   allow_implicit_invocation: true
