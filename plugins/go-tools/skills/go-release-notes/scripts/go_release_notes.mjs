@@ -20,7 +20,15 @@ async function main() {
   const goModPath = options.goMod
     ? path.resolve(options.goMod)
     : findUp(projectDir, "go.mod");
-  const detected = goModPath ? parseGoMod(goModPath) : null;
+  const goWorkPath =
+    !goModPath && options.goWork
+      ? path.resolve(options.goWork)
+      : !goModPath
+        ? findUp(projectDir, "go.work")
+        : null;
+  const projectFilePath = goModPath ?? goWorkPath;
+  const projectFileKind = goModPath ? "go.mod" : goWorkPath ? "go.work" : null;
+  const detected = projectFilePath ? parseGoProjectFile(projectFilePath) : null;
   const detectedTarget = detected ? maxVersion(detected.go, detected.toolchain) : null;
   const target = normalizeGoVersion(options.to ?? detectedTarget);
 
@@ -37,7 +45,8 @@ async function main() {
   if (compareVersion(from, target) >= 0) {
     const summary = {
       project_dir: projectDir,
-      go_mod: goModPath,
+      project_file: projectFilePath,
+      project_file_kind: projectFileKind,
       from,
       target,
       cache_dir: resolveCacheDir(options.cacheDir),
@@ -59,7 +68,8 @@ async function main() {
   printSummary(
     {
       project_dir: projectDir,
-      go_mod: goModPath,
+      project_file: projectFilePath,
+      project_file_kind: projectFileKind,
       detected,
       from,
       target,
@@ -74,6 +84,7 @@ function parseArgs(args) {
   const options = {
     project: undefined,
     goMod: undefined,
+    goWork: undefined,
     from: undefined,
     to: undefined,
     cacheDir: undefined,
@@ -101,6 +112,9 @@ function parseArgs(args) {
         break;
       case "--go-mod":
         options.goMod = readValue();
+        break;
+      case "--go-work":
+        options.goWork = readValue();
         break;
       case "--from":
         options.from = readValue();
@@ -138,6 +152,7 @@ Fetch and cache official Go release notes needed for a project.
 Flags:
   --project <dir>      Start directory for finding go.mod (default: cwd)
   --go-mod <path>      Parse a specific go.mod
+  --go-work <path>     Parse a specific go.work when no go.mod is selected
   --from=1.N           Last Go minor version assumed known; exclusive
   --to=1.N             Target Go minor version; overrides go.mod
   --cache-dir <dir>    Override host plugin data directory detection
@@ -161,8 +176,8 @@ function findUp(startDir, fileName) {
   }
 }
 
-function parseGoMod(goModPath) {
-  const text = fs.readFileSync(goModPath, "utf8");
+function parseGoProjectFile(filePath) {
+  const text = fs.readFileSync(filePath, "utf8");
   let go = null;
   let toolchain = null;
 
@@ -377,8 +392,8 @@ function printSummary(summary, json) {
 
   console.log("Go release notes cache");
   console.log(`Project: ${summary.project_dir}`);
-  if (summary.go_mod) {
-    console.log(`go.mod: ${summary.go_mod}`);
+  if (summary.project_file) {
+    console.log(`${summary.project_file_kind}: ${summary.project_file}`);
   }
   if (summary.detected) {
     console.log(`Detected go directive: ${summary.detected.go ?? "(none)"}`);

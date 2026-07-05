@@ -13,8 +13,9 @@ Do not rely on memory for post-cutoff Go behavior. Determine the target Go versi
 
 1. Find the project target version:
    - Prefer the nearest `go.mod` found from the working directory upward.
+   - If there is no `go.mod`, use the nearest `go.work`.
    - Use the higher of the `go` directive and `toolchain` directive when both are present.
-   - If there is no `go.mod`, use an explicit version from the user's request. If neither exists, stop and ask for the target Go version.
+   - If there is no module or workspace file, use an explicit version from the user's request. If neither exists, stop and ask for the target Go version.
 2. Choose the baseline version:
    - Use the model or session knowledge cutoff when available. Load release notes for every Go minor version after the last Go release that predates that cutoff, through the target version.
    - If the cutoff is unknown, be conservative and start after Go 1.22.
@@ -52,6 +53,7 @@ Useful flags:
 | --- | --- |
 | `--project <dir>` | Start directory for finding `go.mod`; defaults to the current directory. |
 | `--go-mod <path>` | Use a specific `go.mod` instead of walking upward. |
+| `--go-work <path>` | Use a specific `go.work` when no `go.mod` is selected. |
 | `--from=1.N` | Last version assumed known; release notes after this version are loaded. |
 | `--to=1.N` | Target Go version; overrides `go.mod` and `toolchain`. |
 | `--cache-dir <dir>` | Override host data-dir detection. |
