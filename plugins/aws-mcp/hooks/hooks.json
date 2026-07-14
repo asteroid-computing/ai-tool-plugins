@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/install.sh"
+            "command": "if [ -n \"${CLAUDE_PLUGIN_ROOT:-}\" ] && [ -x \"${CLAUDE_PLUGIN_ROOT}/scripts/install.sh\" ]; then \"${CLAUDE_PLUGIN_ROOT}/scripts/install.sh\"; elif [ -x ./scripts/install.sh ]; then ./scripts/install.sh; else echo \"[aws-mcp] SessionStart install hook skipped: plugin root is unavailable\" >&2; fi"
           }
         ]
       }
