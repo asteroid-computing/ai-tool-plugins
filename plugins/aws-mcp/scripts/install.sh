@@ -5,13 +5,15 @@
 # installed version differs (or the binary is missing). If GitHub is
 # unreachable but a binary is already installed, the existing binary is kept.
 #
-# Auth: the source repo is public, so no token is required. Explicit
-# GH_TOKEN/GITHUB_TOKEN is used when set (raises GitHub API rate limits);
-# otherwise downloads are unauthenticated. The installer does not read `gh`
-# CLI credentials implicitly.
+# Auth: the source repo is public, so no token is required. The installer
+# prefers the `gh` CLI when available so logged-in hosts use authenticated
+# GitHub API/downloads and avoid unauthenticated rate limits. If `gh` is not
+# available or cannot access the release, it falls back to curl. Explicit
+# GH_TOKEN/GITHUB_TOKEN is used by the curl fallback when set.
 #
-# Invoked two ways:
+# Invoked by any supported host that can run plugin scripts:
 #   - SessionStart hook in Claude Code (keeps the binary fresh)
+#   - manual or host-managed install in Claude Desktop, Codex CLI, or Codex app
 #   - run.sh, when the binary is missing at MCP launch (first-run safety net)
 set -uo pipefail
 
@@ -20,37 +22,68 @@ BIN_NAME="aws-mcp-proxy"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PLUGIN_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
-plugin_data_dir() {
-  if [ -n "${CLAUDE_PLUGIN_DATA:-}" ]; then
-    printf '%s\n' "$CLAUDE_PLUGIN_DATA"
-    return
-  fi
-  if [ -n "${CODEX_PLUGIN_DATA:-}" ]; then
-    printf '%s\n' "$CODEX_PLUGIN_DATA"
-    return
-  fi
-  if [ -n "${AWS_MCP_PLUGIN_DATA:-}" ]; then
-    printf '%s\n' "$AWS_MCP_PLUGIN_DATA"
-    return
-  fi
-  if mkdir -p "${PLUGIN_ROOT}/.data" 2>/dev/null; then
-    printf '%s\n' "${PLUGIN_ROOT}/.data"
-    return
-  fi
-  if [ -n "${XDG_CACHE_HOME:-}" ]; then
-    printf '%s\n' "${XDG_CACHE_HOME}/ai-tool-plugins/aws-mcp"
-    return
-  fi
-  : "${HOME:?HOME is not set}"
-  printf '%s\n' "${HOME}/.cache/ai-tool-plugins/aws-mcp"
+log() { printf '[aws-mcp-proxy install] %s\n' "$*" >&2; }
+
+first_writable_dir() {
+  local candidate
+  for candidate in "$@"; do
+    [ -n "$candidate" ] || continue
+    if mkdir -p "$candidate" 2>/dev/null && [ -w "$candidate" ]; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+  return 1
 }
 
-DATA_DIR="$(plugin_data_dir)"
+repo_checkout_data_dir() {
+  if [ -d "${PLUGIN_ROOT}/../../.git" ] || [ -d "${PLUGIN_ROOT}/.git" ]; then
+    printf '%s\n' "${PLUGIN_ROOT}/.data"
+  fi
+}
+
+plugin_data_dir() {
+  local name value cache_dir dev_dir
+  for name in \
+    CLAUDE_PLUGIN_DATA \
+    CODEX_PLUGIN_DATA \
+    CLAUDE_DESKTOP_PLUGIN_DATA \
+    CODEX_APP_PLUGIN_DATA \
+    AWS_MCP_PLUGIN_DATA \
+    ASTEROID_AWS_MCP_PLUGIN_DATA; do
+    value="${!name:-}"
+    if [ -n "$value" ]; then
+      if first_writable_dir "$value"; then
+        return 0
+      fi
+      log "${name} is set but is not writable: ${value}"
+      return 1
+    fi
+  done
+
+  if [ -n "${XDG_CACHE_HOME:-}" ]; then
+    cache_dir="${XDG_CACHE_HOME}/ai-tool-plugins/aws-mcp"
+  elif [ "$(uname -s)" = "Darwin" ] && [ -n "${HOME:-}" ]; then
+    cache_dir="${HOME}/Library/Caches/com.asteroidcomputing.ai-tool-plugins/aws-mcp"
+  elif [ -n "${HOME:-}" ]; then
+    cache_dir="${HOME}/.cache/ai-tool-plugins/aws-mcp"
+  else
+    cache_dir=""
+  fi
+
+  dev_dir="$(repo_checkout_data_dir)"
+  if first_writable_dir "$cache_dir" "$dev_dir"; then
+    return 0
+  fi
+
+  log "no writable plugin data directory found"
+  return 1
+}
+
+DATA_DIR="$(plugin_data_dir)" || exit 1
 BIN_DIR="${DATA_DIR}/bin"
 BIN="${BIN_DIR}/${BIN_NAME}"
 VERSION_FILE="${DATA_DIR}/.installed-version"
-
-log() { printf '[aws-mcp-proxy install] %s\n' "$*" >&2; }
 
 # --- Detect OS/arch in Go's GOOS/GOARCH naming -----------------------------
 os="$(uname -s | tr '[:upper:]' '[:lower:]')"
@@ -69,6 +102,16 @@ ASSET="${BIN_NAME}-${os}-${arch}.tar.gz"
 # --- Resolve auth ----------------------------------------------------------
 token="${GH_TOKEN:-${GITHUB_TOKEN:-}}"
 
+# GitHub CLI is preferred because it can reuse the user's stored auth.
+gh_available() {
+  command -v gh >/dev/null 2>&1
+}
+
+latest_tag_from_gh() {
+  gh_available || return 1
+  GH_PROMPT_DISABLED=1 gh release view --repo "$REPO" --json tagName --jq '.tagName' 2>/dev/null
+}
+
 # Auth-aware curl wrapper (avoids conditional-header word-splitting bugs).
 gh_curl() {
   if [ -n "$token" ]; then
@@ -78,7 +121,7 @@ gh_curl() {
   fi
 }
 
-# Cached GitHub API response for the latest release.
+# Cached GitHub API response for the latest release curl fallback.
 api_json=""
 latest_json() {
   if [ -z "$api_json" ]; then
@@ -88,8 +131,15 @@ latest_json() {
   printf '%s' "$api_json"
 }
 
+latest_tag_from_curl() {
+  latest_json | grep -m1 '"tag_name"' | sed -E 's/.*"tag_name": *"([^"]+)".*/\1/'
+}
+
 # --- Resolve the latest release tag ----------------------------------------
-latest_tag="$(latest_json | grep -m1 '"tag_name"' | sed -E 's/.*"tag_name": *"([^"]+)".*/\1/')"
+latest_tag="$(latest_tag_from_gh || true)"
+if [ -z "$latest_tag" ]; then
+  latest_tag="$(latest_tag_from_curl)"
+fi
 
 if [ -z "$latest_tag" ]; then
   if [ -x "$BIN" ]; then
@@ -115,6 +165,12 @@ trap 'rm -rf "$tmp"' EXIT
 download_one() { # $1 = asset filename -> $tmp/$1 ; returns nonzero on failure
   local name="$1" out url
   out="${tmp}/${1}"
+  if gh_available; then
+    if GH_PROMPT_DISABLED=1 gh release download "$latest_tag" --repo "$REPO" --pattern "$name" \
+      --dir "$tmp" --clobber >/dev/null 2>&1 && [ -s "$out" ]; then
+      return 0
+    fi
+  fi
   if [ -n "$token" ]; then
     url="$(latest_json | A="$name" python3 -c \
       'import sys,json,os; d=json.load(sys.stdin); print(next((a["url"] for a in d.get("assets",[]) if a["name"]==os.environ["A"]),""))' \
