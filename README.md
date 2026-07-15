@@ -47,6 +47,7 @@ Gives Claude AWS access through the [AWS MCP Server](https://docs.aws.amazon.com
 - A `SessionStart` hook downloads the `aws-mcp-proxy` binary from GitHub Releases into the plugin's persistent data dir, and keeps it on the latest release (idempotent — only re-downloads on a version change).
 - It registers two MCP servers against the same AWS MCP Server endpoint: `aws-proxy-public` (unsigned requests, for tools that need no AWS credentials) and `aws-proxy-authenticated` (SigV4-signed, for tools that act on your account).
 - The `choose-server` skill (`/aws-mcp:choose-server`) tells Claude which server to use per tool and how to ensure AWS credentials are in place.
+- The `update-proxy` skill (`/aws-mcp:update-proxy`) is explicit-invoke only and helps manually refresh the cached `aws-mcp-proxy` binary, useful for Codex sessions where an existing binary is not updated by `run.sh`.
 
 **Default endpoint:** Europe (Frankfurt), `https://aws-mcp.eu-central-1.api.aws/mcp`. To change regions, edit `args` in the plugin's `.mcp.json` (both servers) — see the `choose-server` skill for the regional endpoint list.
 
