@@ -1,0 +1,6 @@
+interface:
+  display_name: "Update AWS MCP Proxy"
+  short_description: "Manually update the aws-mcp-proxy binary used by AWS MCP"
+  default_prompt: "Use $update-proxy to manually check and update the AWS MCP proxy binary."
+policy:
+  allow_implicit_invocation: false
