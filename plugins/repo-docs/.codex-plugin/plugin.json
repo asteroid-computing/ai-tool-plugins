@@ -1,0 +1,40 @@
+{
+  "name": "repo-docs",
+  "version": "0.1.0",
+  "description": "Skills for how a repository writes down its rules, decisions and briefs: rules files per area, comments that say what, and the issue as the brief.",
+  "author": {
+    "name": "AJ Beck",
+    "email": "aj@asteroidcomputing.com",
+    "url": "https://github.com/ajbeck"
+  },
+  "homepage": "https://github.com/asteroid-computing/ai-tool-plugins",
+  "repository": "https://github.com/asteroid-computing/ai-tool-plugins",
+  "license": "Apache-2.0",
+  "keywords": [
+    "documentation",
+    "adr",
+    "claude-rules",
+    "code-comments",
+    "issue-templates"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Repo Docs",
+    "shortDescription": "Rules files, what-comments and issue briefs",
+    "longDescription": "Skills for how a repository writes down its rules, decisions and briefs. docs-reset migrates a repository, in small reviewable PRs that stop for the owner, from ADRs and citation-heavy comments to .claude/rules files per area, comments that say what the code is, issues that are the complete brief for a session, and a PR reviewer that keeps it from drifting.",
+    "developerName": "AJ Beck",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/asteroid-computing/ai-tool-plugins",
+    "defaultPrompt": [
+      "Migrate this repository off its ADRs.",
+      "Check this repository still follows the docs reset."
+    ],
+    "brandColor": "#5B6B7A",
+    "screenshots": []
+  }
+}
