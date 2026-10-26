@@ -44,7 +44,7 @@ Before proposing anything, find out which steps are already done, so that a migr
 Look at an up-to-date main (`git fetch`, then read `origin/main` or a clean checkout of it), not a feature branch.
 
 ```bash
-for d in docs/adr docs/decisions doc/adr .claude/rules .github/ISSUE_TEMPLATE .claude/agents; do [ -e "$d" ] && echo "present: $d" || echo "absent:  $d"; done
+for d in go.mod go.work docs/adr docs/decisions doc/adr .claude/rules .github/ISSUE_TEMPLATE .claude/agents; do [ -e "$d" ] && echo "present: $d" || echo "absent:  $d"; done
 ls .claude/rules .github/ISSUE_TEMPLATE .claude/agents 2>/dev/null
 wc -l AGENTS.md CLAUDE.md 2>/dev/null
 git grep -nE '\bADR[- ]?[0-9]+|\b[Dd]ecisions? [0-9]+|\(#[0-9]+\)|as amended' -- ':!docs/adr' ':!CHANGELOG.md' ':!*.md' | wc -l
