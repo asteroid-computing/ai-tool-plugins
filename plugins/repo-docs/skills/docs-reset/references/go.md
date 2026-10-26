@@ -40,8 +40,9 @@ These are comments to the parser, but code to the tools that read them ([go.dev/
 - **Generated files**: a file with a `// Code generated … DO NOT EDIT.` line ([go generate](https://pkg.go.dev/cmd/go#hdr-Generate_Go_files_by_processing_source)) is changed by changing its generator, never by hand.
 
 Doc comment syntax is kept as it is: paragraphs separated by a blank `//` line, `# Heading` lines, `[Name]` and `[pkg.Name]` doc links, `[Text]: URL` link targets, lists, and indented code blocks ([go.dev/doc/comment](https://go.dev/doc/comment)).
-The best practices' older heading form, a single capitalised line with no punctuation ([Godoc formatting](https://google.github.io/styleguide/go/best-practices#godoc-formatting)), still renders; do not convert headings in a comment PR.
 gofmt reformats doc comments to a canonical form, so run it after every edit.
+It also rewrites the best practices' older heading form, a single capitalised line with no terminating punctuation ([Godoc formatting](https://google.github.io/styleguide/go/best-practices#godoc-formatting)), as a `# ` heading ([#headings](https://go.dev/doc/comment#headings)); that is a comment change, which `gocomments same` accepts.
+If such a line was not meant as a heading, end it with a full stop or a colon instead.
 
 ## Step 5: areas and `paths:`
 

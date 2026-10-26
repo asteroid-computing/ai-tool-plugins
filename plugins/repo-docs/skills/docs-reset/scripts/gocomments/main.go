@@ -226,7 +226,11 @@ func runSame(base string) (int, error) {
 			continue
 		}
 		if status != "M" {
-			fmt.Printf("%s: %s, not a comment change\n", path, map[string]string{"A": "added", "D": "deleted"}[status])
+			what, ok := map[string]string{"A": "added", "D": "deleted", "T": "type changed"}[status]
+			if !ok {
+				what = "status " + status
+			}
+			fmt.Printf("%s: %s, not a comment change\n", path, what)
 			changed++
 			continue
 		}
