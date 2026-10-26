@@ -1,16 +1,18 @@
-// Command gocomments finds citations and history in a Go module's comments, and checks that a change touched nothing but comments.
+// Command gocomments finds citations, history and work-to-do notes in a Go module's comments, and checks that a change touched nothing but comments.
 //
 // Usage:
 //
 //	go run -C <this directory> . [-repo dir] find [path ...]
 //	go run -C <this directory> . [-repo dir] same <base>
 //
-// find lists each comment line in the .go files under the paths (default ".") that matches a citation or history pattern, as file:line: text.
+// find lists each comment line in the .go files under the paths (default ".") that matches pattern.txt, as file:line: text.
 // It skips directives, cgo preambles, the expected output of examples, generated files, and the vendor and testdata directories.
+// A file that does not parse is listed as not checked, and the rest are still searched.
 // It exits 1 when it lists anything.
 //
-// same compares every .go file that differs between the git revision base and the working tree, and reports each whose tokens, directives or cgo preamble differ.
-// Added, deleted and renamed .go files are reported too, untracked files count as added, and changed files of other types are listed as not checked.
+// same compares every .go file that differs between the working tree and the commit where it left base (git merge-base base HEAD), and reports each whose tokens, directives, cgo preamble or examples' expected output differ.
+// Added and deleted .go files are reported too: a rename shows as both, and an untracked file counts as added.
+// A .go file that does not parse is reported, and changed files of other types are listed as not checked.
 // It exits 1 when any .go file changed more than its comments.
 //
 // Both run in the directory named by -repo, default the current one; `go run -C` builds the tool in its own directory, so pass -repo "$PWD".
@@ -18,6 +20,7 @@ package main
 
 import (
 	"bytes"
+	_ "embed"
 	"errors"
 	"flag"
 	"fmt"
@@ -33,9 +36,14 @@ import (
 	"strings"
 )
 
-// candidate matches the citation and history forms a comment should not hold.
+// pattern matches citations, history and work-to-do notes, and is shared with the skill's git grep commands.
+//
+//go:embed pattern.txt
+var pattern string
+
+// candidate matches the forms a comment should not hold.
 // A match is a candidate only: an external fact such as golang/go#22682 matches too, and a reader decides.
-var candidate = regexp.MustCompile(`\bADR[- ]?\d+|\b[Dd]ecisions? \d+|\(#\d+\)|#\d{2,}\b|issues/\d+|pull/\d+|\bas amended\b|\b(used to|no longer|previously|for now)\b`)
+var candidate = regexp.MustCompile(strings.TrimSpace(pattern))
 
 func main() {
 	repo := flag.String("repo", ".", "the directory to run in: the module's root")
@@ -98,7 +106,9 @@ func runFind(paths []string) (int, error) {
 			}
 			matches, err := findCandidates(path, src)
 			if err != nil {
-				return err
+				fmt.Printf("%s: not checked: %v\n", path, err)
+				n++
+				return nil
 			}
 			for _, m := range matches {
 				fmt.Printf("%s:%d: %s\n", path, m.Line, m.Text)
@@ -111,7 +121,7 @@ func runFind(paths []string) (int, error) {
 		}
 	}
 	if n > 0 {
-		fmt.Fprintf(os.Stderr, "%d candidate lines\n", n)
+		fmt.Fprintf(os.Stderr, "%d lines to read\n", n)
 		return 1, nil
 	}
 	return 0, nil
@@ -210,51 +220,55 @@ func exampleOutputs(f *ast.File) []*ast.CommentGroup {
 	return groups
 }
 
+// A change is one path that differs from the merge base, with git's status letter for it.
+type change struct {
+	Status string
+	Path   string
+}
+
 func runSame(base string) (int, error) {
-	out, err := exec.Command("git", "diff", "--name-status", "--no-renames", base, "--").Output()
+	out, err := exec.Command("git", "merge-base", base, "HEAD").Output()
 	if err != nil {
-		return 2, fmt.Errorf("listing changes since %s: %w", base, gitError(err))
+		return 2, fmt.Errorf("finding where HEAD left %s: %w", base, gitError(err))
 	}
-	untracked, err := exec.Command("git", "ls-files", "--others", "--exclude-standard").Output()
+	from := strings.TrimSpace(string(out))
+	diff, err := exec.Command("git", "diff", "--name-status", "--no-renames", "-z", from, "--").Output()
+	if err != nil {
+		return 2, fmt.Errorf("listing changes since %s: %w", from, gitError(err))
+	}
+	untracked, err := exec.Command("git", "ls-files", "--others", "--exclude-standard", "-z").Output()
 	if err != nil {
 		return 2, fmt.Errorf("listing untracked files: %w", gitError(err))
 	}
-	for _, path := range strings.Fields(string(untracked)) {
-		out = append(out, "\nA\t"+path...)
-	}
 	var changed int
-	for _, line := range strings.Split(strings.TrimSpace(string(out)), "\n") {
-		if line == "" {
+	for _, c := range changes(diff, untracked) {
+		if !strings.HasSuffix(c.Path, ".go") {
+			fmt.Printf("%s: not checked (not a .go file)\n", c.Path)
 			continue
 		}
-		status, path, _ := strings.Cut(line, "\t")
-		if !strings.HasSuffix(path, ".go") {
-			fmt.Printf("%s: not checked (not a .go file)\n", path)
-			continue
-		}
-		if status != "M" {
-			what, ok := map[string]string{"A": "added", "D": "deleted", "T": "type changed"}[status]
+		if c.Status != "M" {
+			what, ok := map[string]string{"A": "added", "D": "deleted", "T": "type changed"}[c.Status]
 			if !ok {
-				what = "status " + status
+				what = "status " + c.Status
 			}
-			fmt.Printf("%s: %s, not a comment change\n", path, what)
+			fmt.Printf("%s: %s, not a comment change\n", c.Path, what)
 			changed++
 			continue
 		}
-		old, err := exec.Command("git", "show", base+":"+path).Output()
+		old, err := exec.Command("git", "show", from+":"+c.Path).Output()
 		if err != nil {
-			return 2, fmt.Errorf("reading %s at %s: %w", path, base, gitError(err))
+			return 2, fmt.Errorf("reading %s at %s: %w", c.Path, from, gitError(err))
 		}
-		cur, err := os.ReadFile(path)
+		cur, err := os.ReadFile(c.Path)
 		if err != nil {
 			return 2, err
 		}
-		reason, err := diffBeyondComments(path, old, cur)
+		reason, err := diffBeyondComments(c.Path, old, cur)
 		if err != nil {
-			return 2, err
+			reason = "not checked: " + err.Error()
 		}
 		if reason != "" {
-			fmt.Printf("%s: %s\n", path, reason)
+			fmt.Printf("%s: %s\n", c.Path, reason)
 			changed++
 		}
 	}
@@ -262,6 +276,21 @@ func runSame(base string) (int, error) {
 		return 1, nil
 	}
 	return 0, nil
+}
+
+// changes reads git diff --name-status -z output and git ls-files -z output, whose paths count as added.
+func changes(diff, untracked []byte) []change {
+	var list []change
+	fields := strings.Split(string(diff), "\x00")
+	for i := 0; i+1 < len(fields); i += 2 {
+		list = append(list, change{Status: fields[i], Path: fields[i+1]})
+	}
+	for _, path := range strings.Split(string(untracked), "\x00") {
+		if path != "" {
+			list = append(list, change{Status: "A", Path: path})
+		}
+	}
+	return list
 }
 
 // gitError adds git's stderr to an exit error.
@@ -274,7 +303,7 @@ func gitError(err error) error {
 }
 
 // diffBeyondComments returns why the two versions of a Go file differ in more than their comments, or "" if they differ only in comments.
-// It compares their tokens, their directives in order and their cgo preambles; a generated file must not change at all.
+// It compares their tokens, their directives in order, their cgo preambles and their examples' expected output; a generated file must not change at all.
 func diffBeyondComments(filename string, old, cur []byte) (string, error) {
 	if bytes.Equal(old, cur) {
 		return "", nil
@@ -305,6 +334,8 @@ func diffBeyondComments(filename string, old, cur []byte) (string, error) {
 		return "directives changed", nil
 	case oldFacts.preamble != curFacts.preamble:
 		return "cgo preamble changed", nil
+	case strings.Join(oldFacts.outputs, "\n") != strings.Join(curFacts.outputs, "\n"):
+		return "an example's expected output changed", nil
 	}
 	return "", nil
 }
@@ -358,10 +389,11 @@ func firstDifference(old, cur []lexeme) int {
 	return 1
 }
 
-// facts are the parts of a file's comments that are code: its directives, its cgo preamble, and whether it is generated.
+// facts are the parts of a file's comments that are code: its directives, its cgo preamble, its examples' expected output, and whether it is generated.
 type facts struct {
 	directives []string
 	preamble   string
+	outputs    []string
 	generated  bool
 }
 
@@ -384,6 +416,9 @@ func commentFacts(filename string, src []byte) (facts, error) {
 		for _, c := range g.List {
 			out.preamble += c.Text + "\n"
 		}
+	}
+	for _, g := range exampleOutputs(f) {
+		out.outputs = append(out.outputs, g.Text())
 	}
 	return out, nil
 }
