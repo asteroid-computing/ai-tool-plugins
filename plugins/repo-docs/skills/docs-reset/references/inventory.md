@@ -32,7 +32,7 @@ Classify the parts separately and keep only the constraint as the rule; the reas
 ## Where it lives
 
 The inventory is an epic issue, because the issue is the brief: a session that has never seen this conversation can do each later PR from it.
-Write it with the repository's brief template, and put the inventory in its Context as a table:
+Title it "ADR inventory: …", so that step 0 finds it later, write it with the repository's brief template, and put the inventory in its Context as a table:
 
 | ADR  | Decision                               | Class (recommended)           | Area    | Kept by                 | Links  | Why this class                                          |
 | ---- | -------------------------------------- | ----------------------------- | ------- | ----------------------- | ------ | ------------------------------------------------------- |
@@ -48,7 +48,7 @@ For a long inventory, present it to the owner one ADR at a time.
 ## The owner settles it
 
 - Present the inventory, ask the owner to confirm or change each row's class and area, and stop.
-- Write the owner's answers into the epic's Decided section in words with the date, for example `- ADR 0001 decisions 14–18 and 21 are live rules for serve; decision 9 is history (AJ, 2026-10-26).`
+- Write the owner's answers into the epic's Decided section in words with the date, for example `- ADR NNNN decisions N–M are live rules for <area>; decision K is history (owner, YYYY-MM-DD).`
 - Then write one brief issue per area for step 5, each linking the epic and listing its rows, and one per package or area for step 6.
 
 Nothing in step 5 starts until the owner has settled the rows that area needs.

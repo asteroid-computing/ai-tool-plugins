@@ -37,7 +37,7 @@ Remove:
 - citations: `(ADR 0004, decision 2)`, `(#285)`, `decision 10`, `see issue 42`, issue and PR URLs, `as amended 2026-10-21`, question or ticket IDs, `(AJ, 2026-10-15)`;
 - history: "used to", "no longer", "was changed to", "now that", "since the migration", "previously", "for now", "the old …";
 - provenance: who asked for it, who decided it, which session or PR wrote it;
-- a sentence that only gives the project's reason ("because AJ wanted it on the LAN"): turn it into what the code does, or drop it if the rule's "Because" already says it.
+- a sentence that only gives the project's reason ("because the owner wanted it on the LAN"): turn it into what the code does, or drop it if the rule's "Because" already says it.
 
 Keep:
 

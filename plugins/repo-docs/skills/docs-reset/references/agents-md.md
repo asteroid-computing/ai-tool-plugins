@@ -44,7 +44,7 @@ In the PR that deletes the ADR directory:
 - **"There are no ADRs."** as its own line under "Where things are written", with: "A decision that sets a lasting rule becomes a rule; a decision for one issue goes in that issue's Decided section."
 - **A short "Architecture" list**: only the constraints that bind every change, whatever area it touches, such as the processes that run, where state is kept, what is never stored or logged, and the one place child processes run.
   Each is one bullet of a sentence or two; a constraint that binds one area goes in that area's rules file instead.
-  Orca's has six.
+  Orca's has seven.
 - **Pointers to the rules files**, where a rule for all work has its detail in one area: "**Nothing in a deploy writes the table** (`.claude/rules/tasks.md`)", as ilttu does, and the layout naming `.claude/rules/` with one line.
 - **No ADR left**: remove every mention of `docs/adr`, ADR numbers and decision numbers from AGENTS.md, CLAUDE.md, the README, the reviewer and the issue template; a remaining rule that cited "decision 12" says what decision 12 said.
 - **Under 200 lines**, by moving area detail into rules files rather than by cutting rules.
