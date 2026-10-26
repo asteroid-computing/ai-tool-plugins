@@ -72,6 +72,20 @@ Skills for writing and reviewing idiomatic Go, targeting **Go 1.26**. The rules 
 
 **Codex status:** marketplace, plugin metadata, and skill metadata are present. Shared skills keep Claude-specific invocation metadata where needed; Codex-specific invocation policy lives in each skill's `agents/openai.yaml`.
 
+### `repo-docs`
+
+Skills for how a repository writes down its rules, decisions and briefs, from the documentation reset piloted in [asteroid-computing/orca](https://github.com/asteroid-computing/orca).
+
+```shell
+/plugin install repo-docs@asteroid-computing-tools
+```
+
+**Skills**
+
+- **`/repo-docs:docs-reset`** — explicit-invoke. Walks a repository, in small reviewable PRs that each stop for the owner, from ADRs to `.claude/rules/<area>.md` files of live rules (each a statement, a "Because" sentence and links), code comments that say what the code is and cite no issue or decision (after [Go Doc Comments](https://go.dev/doc/comment) and Google's style guides), issues that are the complete brief for a session, and a PR reviewer that keeps it from drifting. It first checks where the repository stands, so a migrated repository is audited rather than migrated again.
+
+**Codex status:** marketplace, plugin metadata, and skill metadata are present; the skill is explicit-invoke in both hosts.
+
 ## License
 
 [Apache-2.0](./LICENSE).

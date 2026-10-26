@@ -15,6 +15,11 @@
       "name": "go-tools",
       "source": "./plugins/go-tools",
       "description": "Skills for writing and reviewing idiomatic Go (Go 1.26)."
+    },
+    {
+      "name": "repo-docs",
+      "source": "./plugins/repo-docs",
+      "description": "Skills for writing down rules, decisions and briefs: rules files, what-comments and the issue as the brief."
     }
   ]
 }

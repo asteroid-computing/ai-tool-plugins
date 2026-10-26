@@ -1,0 +1,6 @@
+interface:
+  display_name: "Docs Reset"
+  short_description: "Retire ADRs into rules files, what-comments and issue briefs"
+  default_prompt: "Use $docs-reset to walk this repository through the documentation reset, one reviewable PR at a time."
+policy:
+  allow_implicit_invocation: false
