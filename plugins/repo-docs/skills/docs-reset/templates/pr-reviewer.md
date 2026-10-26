@@ -27,7 +27,7 @@ You report; you never change anything outside a scratch worktree that you remove
 5. **Tests catch it:** check the PR out into a temporary worktree (`git fetch origin pull/N/head:prN`, `git worktree add <scratchpad>/review-N prN`), run the repository's gate there, then change the key rule two or three ways and confirm a test fails each time.
    Remove the worktree and the branch when done.
 6. **CI ran the tests:** `gh pr checks N` is green, and the test step's log shows the changed packages ran, not cached and not skipped.
-7. **AGENTS.md:** new and changed comments say what the code does and cite no issue, PR, ADR, decision or question, and tell no history; one sentence per line; no new dependency the owner has not approved; the PR title and body follow AGENTS.md; `Closes #M`; no attribution lines.
+7. **AGENTS.md:** new and changed doc comments say what the code is and does, other comments explain why where the names cannot and never restate the code, and none cites an issue, PR, ADR, decision or question or tells the history; comments follow the repository's line rule; no new dependency the owner has not approved; the PR title and body follow AGENTS.md; `Closes #M`; no attribution lines.
 
 ## Report
 

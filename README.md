@@ -82,7 +82,7 @@ Skills for how a repository writes down its rules, decisions and briefs, from th
 
 **Skills**
 
-- **`/repo-docs:docs-reset`** — explicit-invoke. Walks a repository, in small reviewable PRs that each stop for the owner, from ADRs to `.claude/rules/<area>.md` files of live rules (each a statement, a "Because" sentence and links), code comments that say what the code is and cite no issue or decision (after [Go Doc Comments](https://go.dev/doc/comment) and Google's style guides), issues that are the complete brief for a session, and a PR reviewer that keeps it from drifting. It first checks where the repository stands, so a migrated repository is audited rather than migrated again.
+- **`/repo-docs:docs-reset`** — explicit-invoke. Walks a repository, in small reviewable PRs that each stop for the owner, from ADRs to `.claude/rules/<area>.md` files of live rules (each a statement, a "Because" sentence and links), code comments by the [Google Go Style Guide](https://google.github.io/styleguide/go/) (doc comments say what, other comments say why) that cite no issue or decision, with Go-specific guidance from [go.dev/wiki/Comments](https://go.dev/wiki/Comments) and a `gocomments` tool that finds citations in comments and proves a PR changed only comments, issues that are the complete brief for a session, and a PR reviewer that keeps it from drifting. It first checks where the repository stands, so a migrated repository is audited rather than migrated again.
 
 **Codex status:** marketplace, plugin metadata, and skill metadata are present; the skill is explicit-invoke in both hosts.
 

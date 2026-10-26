@@ -13,8 +13,8 @@ Add a "Where things are written" section near the top, adapted from [orca's](htt
 ```markdown
 ## Where things are written
 
-- **The code and its comments say what the code is and does.**
-  Never why it was chosen, its history, or who decided it.
+- **Doc comments say what the code is and does; other comments say why the code does what it does where its names cannot.**
+  No comment cites an issue, a PR, an ADR or a decision, or tells the history; the reason for a project decision is its rule's "Because".
 - **`.claude/rules/<area>.md` holds the rules that apply now**, one file per area, which load when a session works on that area's paths.
   Each rule is a statement, one sentence that starts "Because", and links to the issues and PRs behind it.
   A rule is edited in place, and git is its history.
@@ -25,17 +25,18 @@ Add a "Where things are written" section near the top, adapted from [orca's](htt
 
 While the ADRs still exist, add the precedence lines from [where-decisions-go.md](where-decisions-go.md#while-the-adrs-still-exist), and change every line that says a decision is recorded as an ADR amendment.
 
-Add the comment rule to the rules for all work, because the reviewer's check alone is too late: in obby, sessions kept adding issue citations to new comments while AGENTS.md did not forbid them.
+Add the comment rule to the rules for all work, because the reviewer's check alone is too late: sessions write what AGENTS.md allows, and add citations to new comments until it forbids them.
 
 ```markdown
-- **Comments say what, for the reader of the code** (https://go.dev/doc/comment).
-  A package comment says what the package is for and how its parts fit together.
-  A symbol's comment says what a caller needs: what it returns or does, its special cases, its units and whether it is safe for concurrent use.
-  A comment in a function body explains a step that is not obvious from the code.
+- **Comments follow the Google Go Style Guide** (https://google.github.io/styleguide/go/guide#clarity, https://go.dev/doc/comment).
+  A doc comment says what the package, type or function is and does, for anyone using it: what it returns or does, its special cases, its units, its errors, and whether it is safe for concurrent use.
+  A comment in a function body explains why the code does what it does where its names cannot, and never restates what it does.
   No comment cites an ADR, an issue, a PR, a decision or a question, and none tells the history; an external fact the code depends on (for example `golang/go#22682`) may be named.
+  Directives (`//go:build`, `//go:generate`, `//go:embed` and the rest, https://go.dev/wiki/Comments) are code, not comments.
 ```
 
-For a repository not written in Go, cite the language's own documentation guide next to go.dev/doc/comment, or the Google style guide for that language.
+Where the repository's line rule for comments differs from the style guide's [comment line length](https://google.github.io/styleguide/go/decisions#comment-line-length) (for example one sentence per line, never wrapped), say so in the same rule, so a session does not "fix" it.
+For a repository not written in Go, cite that language's own style guide in place of the Go links.
 
 ## Step 7: retire the ADRs
 
