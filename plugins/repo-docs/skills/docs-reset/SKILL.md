@@ -1,6 +1,6 @@
 ---
 name: docs-reset
-description: This skill should be used when the user asks to migrate a repository to the documentation reset piloted in asteroid-computing/orca, phrased as "/docs-reset", "retire the ADRs", "move the ADRs into .claude/rules", "make the issue the brief", "clean the decision citations out of the comments", or "check this repo still follows the docs reset". Walks the repository, in small reviewable PRs that each stop for the owner, from ADRs and citation-heavy comments to rules files per area, comments that follow the Google Go Style Guide with no citations or history, and issues that are the complete brief for a session.
+description: This skill should be used when the user asks to migrate a repository to the documentation reset piloted in asteroid-computing/orca, phrased as "/repo-docs:docs-reset", "retire the ADRs", "move the ADRs into .claude/rules", "make the issue the brief", "clean the decision citations out of the comments", or "check this repo still follows the docs reset". Walks the repository, in small reviewable PRs that each stop for the owner, from ADRs and citation-heavy comments to rules files per area, comments that follow the Google Go Style Guide with no citations or history, and issues that are the complete brief for a session.
 disable-model-invocation: true
 ---
 # Documentation reset
@@ -14,7 +14,7 @@ When the reset is done, the repository has:
 
 - **no ADRs**: history stays in git, issues and PRs;
 - **rules files**: the rules that apply now, one file per area in `.claude/rules/<area>.md` with `paths:` frontmatter, each rule a statement, one "Because" sentence and links to its issues and PRs, edited in place;
-- **comments by the Google Go Style Guide**: doc comments say what the code is and does for its users, other comments explain why the code does what it does where its names cannot, and no comment cites an issue, PR or decision or tells the history;
+- **comments by the Google Go Style Guide**: doc comments say what the code is and does for its users, other comments explain why the code does what it does where its names cannot, and every comment stays true while its code is unchanged, so none cites an issue, PR or decision, tells the history or holds a TODO;
 - **the issue as the brief**: each issue holds everything its session needs, from a template, with the owner's answers in its Decided section;
 - **an AGENTS.md** that says all of this, lists the few real architecture constraints, and points to the rules files;
 - **a PR reviewer** that checks each PR against the brief and the rules, so the repository does not drift back.
@@ -35,6 +35,10 @@ When the reset is done, the repository has:
 - **One sentence per line** in the Markdown this skill writes ([semantic linefeeds](https://rhodesmill.org/brandon/2012/one-sentence-per-line/)), unless the repository's own rule differs.
   Code comments follow the repository's own line rule, whatever it is ([comments.md](references/comments.md#line-length)).
 - **In a Go repository** (a `go.mod` or `go.work` at the root), read [references/go.md](references/go.md) as well: its sections add the Go parts of steps 1, 5 and 6 and the `gocomments` tool.
+- **The skill's own files** are referred to through `TOOL`, the directory of the `gocomments` tool and of `pattern.txt`, the one copy of the citation pattern that every search here uses:
+  ```bash
+  TOOL="${CLAUDE_SKILL_DIR}/scripts/gocomments"
+  ```
 - **If the repository has an orchestrator** (`.claude/orchestrator.json` and the orchestrator skill), each PR below is an issue on its board written as a brief, and a worker session takes it; this skill then plans and writes those issues.
   Otherwise do the PRs one at a time here, each merged before the next one that depends on it starts.
 
@@ -47,7 +51,7 @@ Look at an up-to-date main (`git fetch`, then read `origin/main` or a clean chec
 for d in go.mod go.work docs/adr docs/decisions doc/adr .claude/rules .github/ISSUE_TEMPLATE .claude/agents; do [ -e "$d" ] && echo "present: $d" || echo "absent:  $d"; done
 ls .claude/rules .github/ISSUE_TEMPLATE .claude/agents 2>/dev/null
 wc -l AGENTS.md CLAUDE.md 2>/dev/null
-git grep -nE '\bADR[- ]?[0-9]+|\b[Dd]ecisions? [0-9]+|\(#[0-9]+\)|as amended' -- ':!docs/adr' ':!CHANGELOG.md' ':!*.md' | wc -l
+git grep -nE -f "$TOOL/pattern.txt" -- ':!docs/adr' ':!CHANGELOG.md' ':!*.md' | wc -l
 gh issue list --state all --search 'ADR inventory in:title,body' --limit 10
 ```
 
@@ -78,7 +82,7 @@ Read each step's reference file before doing that step; the templates are in `te
 | Step               | PR                                                                                                                                                                                       | Reference                                                                                                                |
 | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
 | 1. Stop the drift  | AGENTS.md: new decisions go in the issue's Decided section and `.claude/rules`, never an ADR; new comments cite no issue, PR or decision; where a rules file exists it wins over an ADR. | [references/where-decisions-go.md](references/where-decisions-go.md), [references/agents-md.md](references/agents-md.md) |
-| 2. The reviewer    | `.claude/agents/pr-reviewer.md` checks acceptance criteria, the Decided section, the rules files for the changed paths, and the comment rule.                                            | [references/pr-reviewer.md](references/pr-reviewer.md)                                                                   |
+| 2. The reviewer    | `.claude/agents/pr-reviewer.md` checks acceptance criteria, the Decided section, the rules files for the changed paths, and the comment rule; its placeholders are filled in for the repository.                                            | [references/pr-reviewer.md](references/pr-reviewer.md)                                                                   |
 | 3. The brief       | `.github/ISSUE_TEMPLATE/brief.md`, and AGENTS.md's "Working in a session" says the issue is the brief.                                                                                   | [references/issue-brief.md](references/issue-brief.md)                                                                   |
 | 4. The inventory   | No PR: an epic issue that classifies every ADR decision as live, history or superseded, for the owner to settle.                                                                         | [references/inventory.md](references/inventory.md)                                                                       |
 | 5. Rules files     | One PR per area: the live rules from the inventory, as `.claude/rules/<area>.md`.                                                                                                        | [references/rules-files.md](references/rules-files.md)                                                                   |
@@ -96,7 +100,7 @@ The reset is done when:
 
 - no ADR directory exists, and AGENTS.md says "There are no ADRs";
 - every live rule from the inventory is in a rules file, and every superseded or historical decision was confirmed as such by the owner;
-- `git grep` for citations in comments finds only external facts (for example `golang/go#22682`) and words that are not citations;
+- the search for citations in comments (`gocomments find`, or `git grep -E -f "$TOOL/pattern.txt"`) finds only external facts (for example `golang/go#22682`) and words that are not citations;
 - every open issue that a session will take follows the brief template;
 - AGENTS.md is under 200 lines, the size Claude Code's documentation recommends for an instruction file ([How Claude remembers your project](https://code.claude.com/docs/en/memory)).
 

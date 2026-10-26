@@ -2,7 +2,15 @@
 
 The reviewer is a subagent, `.claude/agents/pr-reviewer.md`, that reviews one PR against its issue and the rules, and reports; it never pushes, comments, approves or merges.
 Its checks are what keep the repository from drifting back to amendments and citations once the migration is done.
-Start from [`templates/pr-reviewer.md`](../templates/pr-reviewer.md), and keep the repository's own checks (its correctness hot spots, privacy, device constraints, the gate, CI) alongside the ones below.
+Start from [`templates/pr-reviewer.md`](../templates/pr-reviewer.md), and fill in its placeholders when you add it to the repository:
+
+- `<owner/repo>`: the repository;
+- `<the repository's risky paths …>`: the code where a mistake costs most, named by package or file;
+- `<pattern>`: the line in `$TOOL/pattern.txt`, pasted in as it is, since the reviewer runs in the target repository without this skill;
+- `<gocomments line>`: in a Go repository, `, and check that the PR body reports gocomments same origin/main passing`; elsewhere, nothing.
+  The session that writes a comment PR runs `gocomments same` with this skill loaded and says so in the PR body ([comments.md](comments.md#cleaning-a-repositorys-comments)); the reviewer, which runs without the skill, checks the claim and reads the lines.
+
+Keep the repository's own checks (its correctness hot spots, privacy, device constraints, the gate, CI) alongside the ones below.
 
 ## The checks the reset adds
 
@@ -17,10 +25,10 @@ Start from [`templates/pr-reviewer.md`](../templates/pr-reviewer.md), and keep t
 4. **No new ADR, no amendment.**
    The PR adds no file under the ADR directory and changes no ADR, unless it is the step 7 PR that deletes them.
 5. **Comments follow the comment rule** ([comments.md](comments.md)).
-   Every new or changed doc comment says what the code is and does for its users; every other new or changed comment explains why where the names cannot, and none restates the code; none cites an issue, PR, ADR, decision or question, and none tells the history.
-   A quick pass in Go: `gocomments find` on the PR's checkout ([go.md](go.md)); in any language: `gh pr diff N | grep '^+' | grep -E '\bADR[- ]?[0-9]+|\b[Dd]ecisions? [0-9]+|\(#[0-9]+\)|as amended|\b(used to|no longer|previously)\b'`.
+   Every new or changed doc comment says what the code is and does for its users; every other new or changed comment explains why where the names cannot, and none restates what the code already says; every comment passes [the test](comments.md#the-test), so none cites an issue, PR, ADR, decision or question, tells the history or holds a TODO.
+   A quick pass in Go: `gocomments find` on the PR's checkout ([go.md](go.md)); in any language: `gh pr diff N | grep '^+' | grep -E -f "$TOOL/pattern.txt"`.
    Then read the diff for what a pattern cannot see.
-   For a PR that should change only comments, `gocomments same origin/main` in Go.
+   For a PR that should change only comments, the PR body reports `gocomments same origin/main` passing in Go, and a reviewer with this skill loaded reruns it.
 6. **Decisions in words.**
    Where the session asks the owner for a choice, its hand-back states it with a recommendation; where it claims the owner agreed, the reviewer reports the claim for the orchestrator or the owner to confirm, never as fact.
 

@@ -8,7 +8,7 @@ What is true when this is done, in one or two sentences.
 
 ## Context
 
-Links only: the `.claude/rules` files and headings it touches, the design bible boards, and the issues and PRs it builds on.
+Links only: the `.claude/rules` files and headings it touches, the design boards, and the issues and PRs it builds on.
 
 ## Scope
 

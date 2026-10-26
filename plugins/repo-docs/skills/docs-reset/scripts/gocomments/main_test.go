@@ -187,3 +187,62 @@ func TestDiffBeyondCommentsGeneratedFile(t *testing.T) {
 		t.Errorf("diffBeyondComments() = %q, want %q", got, "generated file changed")
 	}
 }
+
+func TestCandidate(t *testing.T) {
+	tests := map[string]bool{
+		"// see decision 4":                                 true,
+		"// ADR 0001 says so":                               true,
+		"// fixed in (#12)":                                 true,
+		"// see #123.":                                      true,
+		"// github.com/o/r/issues/7":                        true,
+		"// github.com/o/r/pull/7":                          true,
+		"// as amended 2026-10-21":                          true,
+		"// it used to be 2":                                true,
+		"// previously a map":                               true,
+		"// TODO(aj): handle retries":                       true,
+		"// FIXME: racy":                                    true,
+		"// XXX this is odd":                                true,
+		"// BUG(aj): not cleaned up":                        true,
+		"// TODOS are not notes":                            false,
+		"// MADR 3 is not an ADR":                           false,
+		"// the connection is no longer usable after Close": false,
+		"// Kind is a kind of event.":                       false,
+	}
+	for text, want := range tests {
+		if got := candidate.MatchString(text); got != want {
+			t.Errorf("candidate.MatchString(%q) = %v, want %v", text, got, want)
+		}
+	}
+}
+
+func TestFindCandidatesDoesNotParse(t *testing.T) {
+	if _, err := findCandidates("p.go", []byte("package p\nfunc {")); err == nil {
+		t.Error("findCandidates() of a file that does not parse returned no error")
+	}
+}
+
+func TestChanges(t *testing.T) {
+	diff := []byte("M\x00café.go\x00D\x00a dir/old.go\x00A\x00a dir/new file.go\x00")
+	untracked := []byte("pkg a/new file.go\x00")
+	want := []change{
+		{Status: "M", Path: "café.go"},
+		{Status: "D", Path: "a dir/old.go"},
+		{Status: "A", Path: "a dir/new file.go"},
+		{Status: "A", Path: "pkg a/new file.go"},
+	}
+	if got := changes(diff, untracked); !reflect.DeepEqual(got, want) {
+		t.Errorf("changes() = %#v, want %#v", got, want)
+	}
+}
+
+func TestDiffBeyondCommentsExampleOutput(t *testing.T) {
+	old := "package p\n\nfunc ExampleF() {\n\tprintln(1)\n\t// Output:\n\t// 1\n}\n"
+	cur := "package p\n\nfunc ExampleF() {\n\tprintln(1)\n\t// Output:\n\t// 2\n}\n"
+	got, err := diffBeyondComments("p_test.go", []byte(old), []byte(cur))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want := "an example's expected output changed"; got != want {
+		t.Errorf("diffBeyondComments() = %q, want %q", got, want)
+	}
+}
