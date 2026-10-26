@@ -66,7 +66,7 @@ go run -C "$TOOL" . -repo "$PWD" same origin/main                 # prove only c
   It exits 1 when it prints anything.
   Its matches are candidates: an external fact such as `golang/go#22682` matches too, and the PR body says why each remaining match stays.
 - **`same <base>`** compares every `.go` file that differs between the git revision `<base>` and the working tree, by its tokens without comments, its directives and its cgo preamble.
-  It prints each file that changed more than its comments, with the first line that differs, and each added, deleted or generated `.go` file; it lists other changed files as not checked.
+  It prints each file that changed more than its comments, with the first line that differs, and each added (including untracked), deleted or generated `.go` file; it lists other changed files as not checked.
   It exits 1 when any `.go` file changed more than its comments.
   Run it before pushing a comment PR, and the reviewer runs it on the PR's checkout.
 

@@ -10,7 +10,7 @@
 // It exits 1 when it lists anything.
 //
 // same compares every .go file that differs between the git revision base and the working tree, and reports each whose tokens, directives or cgo preamble differ.
-// Added, deleted and renamed .go files are reported too, and changed files of other types are listed as not checked.
+// Added, deleted and renamed .go files are reported too, untracked files count as added, and changed files of other types are listed as not checked.
 // It exits 1 when any .go file changed more than its comments.
 //
 // Both run in the directory named by -repo, default the current one; `go run -C` builds the tool in its own directory, so pass -repo "$PWD".
@@ -214,6 +214,13 @@ func runSame(base string) (int, error) {
 	out, err := exec.Command("git", "diff", "--name-status", "--no-renames", base, "--").Output()
 	if err != nil {
 		return 2, fmt.Errorf("listing changes since %s: %w", base, gitError(err))
+	}
+	untracked, err := exec.Command("git", "ls-files", "--others", "--exclude-standard").Output()
+	if err != nil {
+		return 2, fmt.Errorf("listing untracked files: %w", gitError(err))
+	}
+	for _, path := range strings.Fields(string(untracked)) {
+		out = append(out, "\nA\t"+path...)
 	}
 	var changed int
 	for _, line := range strings.Split(strings.TrimSpace(string(out)), "\n") {
