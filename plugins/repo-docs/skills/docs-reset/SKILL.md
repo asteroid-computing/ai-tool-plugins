@@ -39,19 +39,34 @@ When the reset is done, the repository has:
 ## Step 0: where the repository stands
 
 Before proposing anything, find out which steps are already done, so that a migrated repository is audited rather than migrated again.
+Look at an up-to-date main (`git fetch`, then read `origin/main` or a clean checkout of it), not a feature branch.
 
 ```bash
-ls docs/adr docs/decisions doc/adr 2>/dev/null          # ADRs still present?
+for d in docs/adr docs/decisions doc/adr .claude/rules .github/ISSUE_TEMPLATE .claude/agents; do [ -e "$d" ] && echo "present: $d" || echo "absent:  $d"; done
 ls .claude/rules .github/ISSUE_TEMPLATE .claude/agents 2>/dev/null
 wc -l AGENTS.md CLAUDE.md 2>/dev/null
-git grep -nE '\bADR[- ]?[0-9]+|\b[Dd]ecisions? [0-9]+|\(#[0-9]+\)|as amended' -- ':!docs/adr' | wc -l
+git grep -nE '\bADR[- ]?[0-9]+|\b[Dd]ecisions? [0-9]+|\(#[0-9]+\)|as amended' -- ':!docs/adr' ':!CHANGELOG.md' ':!*.md' | wc -l
+gh issue list --state all --search 'ADR inventory in:title,body' --limit 10
 ```
 
+The grep counts candidates in code and config, not citations: read a sample of matches before calling step 6 done or not started, and use the fuller pattern in [references/comments.md](references/comments.md) for the real pass.
 Then read AGENTS.md (or CLAUDE.md) for where it says decisions, rules and comments are written.
-Report the state to the owner as one line per step below: done, partly done (with what is missing), or not started.
+Report the state to the owner as one line per step, judged by its test:
 
-- A repository with no ADRs, rules files and a brief template (asteroid-computing/ilttu is one) is **audited**: run the [reviewer's checks](references/pr-reviewer.md) over the repository as it is, and propose PRs only for what fails.
-- A repository mid-migration (ajbeck/obby is one: new decisions already go in issues, the ADRs still describe what was built) continues from the first step not done.
+| Step | Done when                                                                                                                                                                                                                                            |
+| ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1    | AGENTS.md sends new decisions to the issue's Decided section and `.claude/rules`, never an ADR; says comments cite no issue, PR or decision; and, while ADRs exist, says a rules file wins over an ADR. Any one of the three missing is partly done. |
+| 2    | The reviewer reads the rules files for the changed paths and checks acceptance criteria, the Decided section, no new ADR or amendment, and the comment rule.                                                                                         |
+| 3    | `.github/ISSUE_TEMPLATE/brief.md` exists with the template's sections, and AGENTS.md says the issue body is the brief.                                                                                                                               |
+| 4    | An inventory epic exists and the owner has settled every row (its Decided section says so); no ADRs means nothing to inventory.                                                                                                                      |
+| 5    | Every row the owner settled as live is in a rules file. Without an inventory, list the rules files and the areas they cover, and call it partly done.                                                                                                |
+| 6    | The citation grep's remaining matches are only external facts and words that are not citations.                                                                                                                                                      |
+| 7    | No ADR directory, and AGENTS.md says there are no ADRs and is under 200 lines.                                                                                                                                                                       |
+
+Then:
+
+- A repository with no ADRs, rules files and a brief template (asteroid-computing/ilttu is one) is **audited**: as part of step 0, run the [reviewer's checks](references/pr-reviewer.md) over the repository as it is (the comment grep across the code, each rules file's `paths:` and links, the template's sections), and propose PRs only for what fails.
+- A repository mid-migration (ajbeck/obby is one: new decisions already go in issues, the ADRs still describe what was built) finishes any of steps 1 to 3 that is not done, in that order, then continues in step order from the first of steps 4 to 7 not done.
 - A repository with ADRs and nothing else starts at step 1.
 
 ## The steps
