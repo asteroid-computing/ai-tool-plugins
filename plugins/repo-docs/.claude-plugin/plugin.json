@@ -1,6 +1,6 @@
 {
   "name": "repo-docs",
-  "description": "Skills for how a repository writes down its rules, decisions and briefs: rules files per area, comments that say what, and the issue as the brief.",
+  "description": "Skills for how a repository writes down its rules, decisions and briefs: rules files per area, comments that follow the Google Go Style Guide with no citations, and the issue as the brief.",
   "version": "0.1.0",
   "license": "Apache-2.0",
   "author": {

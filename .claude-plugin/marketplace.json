@@ -19,7 +19,7 @@
     {
       "name": "repo-docs",
       "source": "./plugins/repo-docs",
-      "description": "Skills for writing down rules, decisions and briefs: rules files, what-comments and the issue as the brief."
+      "description": "Skills for writing down rules, decisions and briefs: rules files, citation-free comments and the issue as the brief."
     }
   ]
 }

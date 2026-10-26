@@ -16,9 +16,11 @@ Start from [`templates/pr-reviewer.md`](../templates/pr-reviewer.md), and keep t
    A rule whose code the PR removed is deleted.
 4. **No new ADR, no amendment.**
    The PR adds no file under the ADR directory and changes no ADR, unless it is the step 7 PR that deletes them.
-5. **Comments say what.**
-   Every new or changed comment says what the code is or does and cites no issue, PR, ADR, decision or question, and none tells the history.
-   A quick pass: `gh pr diff N | grep '^+' | grep -E '\bADR[- ]?[0-9]+|\b[Dd]ecisions? [0-9]+|\(#[0-9]+\)|as amended|\b(used to|no longer|previously)\b'`, then read the diff for what the pattern cannot see.
+5. **Comments follow the comment rule** ([comments.md](comments.md)).
+   Every new or changed doc comment says what the code is and does for its users; every other new or changed comment explains why where the names cannot, and none restates the code; none cites an issue, PR, ADR, decision or question, and none tells the history.
+   A quick pass in Go: `gocomments find` on the PR's checkout ([go.md](go.md)); in any language: `gh pr diff N | grep '^+' | grep -E '\bADR[- ]?[0-9]+|\b[Dd]ecisions? [0-9]+|\(#[0-9]+\)|as amended|\b(used to|no longer|previously)\b'`.
+   Then read the diff for what a pattern cannot see.
+   For a PR that should change only comments, `gocomments same origin/main` in Go.
 6. **Decisions in words.**
    Where the session asks the owner for a choice, its hand-back states it with a recommendation; where it claims the owner agreed, the reviewer reports the claim for the orchestrator or the owner to confirm, never as fact.
 

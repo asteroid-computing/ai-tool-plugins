@@ -1,6 +1,6 @@
 ---
 name: docs-reset
-description: This skill should be used when the user asks to migrate a repository to the documentation reset piloted in asteroid-computing/orca, phrased as "/docs-reset", "retire the ADRs", "move the ADRs into .claude/rules", "make the issue the brief", "clean the decision citations out of the comments", or "check this repo still follows the docs reset". Walks the repository, in small reviewable PRs that each stop for the owner, from ADRs and citation-heavy comments to rules files per area, comments that say what the code is, and issues that are the complete brief for a session.
+description: This skill should be used when the user asks to migrate a repository to the documentation reset piloted in asteroid-computing/orca, phrased as "/docs-reset", "retire the ADRs", "move the ADRs into .claude/rules", "make the issue the brief", "clean the decision citations out of the comments", or "check this repo still follows the docs reset". Walks the repository, in small reviewable PRs that each stop for the owner, from ADRs and citation-heavy comments to rules files per area, comments that follow the Google Go Style Guide with no citations or history, and issues that are the complete brief for a session.
 disable-model-invocation: true
 ---
 # Documentation reset
@@ -14,7 +14,7 @@ When the reset is done, the repository has:
 
 - **no ADRs**: history stays in git, issues and PRs;
 - **rules files**: the rules that apply now, one file per area in `.claude/rules/<area>.md` with `paths:` frontmatter, each rule a statement, one "Because" sentence and links to its issues and PRs, edited in place;
-- **comments that say what**: what the code is and what a caller needs, never why it was chosen, its history, or a citation of an issue, PR or decision;
+- **comments by the Google Go Style Guide**: doc comments say what the code is and does for its users, other comments explain why the code does what it does where its names cannot, and no comment cites an issue, PR or decision or tells the history;
 - **the issue as the brief**: each issue holds everything its session needs, from a template, with the owner's answers in its Decided section;
 - **an AGENTS.md** that says all of this, lists the few real architecture constraints, and points to the rules files;
 - **a PR reviewer** that checks each PR against the brief and the rules, so the repository does not drift back.
@@ -32,7 +32,9 @@ When the reset is done, the repository has:
   A reason given in an ADR or a comment either becomes a rule's "Because" sentence or is confirmed by the owner as history before the text that held it is removed.
   This fixes the order of the PRs: rules files before comment cleanup, and the ADRs retired last.
 - **Check claims at the source**: read the code before calling a rule live, and read the issue or PR before linking it.
-- **One sentence per line** in everything this skill writes ([semantic linefeeds](https://rhodesmill.org/brandon/2012/one-sentence-per-line/)), unless the repository's own rule differs.
+- **One sentence per line** in the Markdown this skill writes ([semantic linefeeds](https://rhodesmill.org/brandon/2012/one-sentence-per-line/)), unless the repository's own rule differs.
+  Code comments follow the repository's own line rule, whatever it is ([comments.md](references/comments.md#line-length)).
+- **In a Go repository** (a `go.mod` or `go.work` at the root), read [references/go.md](references/go.md) as well: its sections add the Go parts of steps 1, 5 and 6 and the `gocomments` tool.
 - **If the repository has an orchestrator** (`.claude/orchestrator.json` and the orchestrator skill), each PR below is an issue on its board written as a brief, and a worker session takes it; this skill then plans and writes those issues.
   Otherwise do the PRs one at a time here, each merged before the next one that depends on it starts.
 
@@ -60,7 +62,7 @@ Report the state to the owner as one line per step, judged by its test:
 | 3    | `.github/ISSUE_TEMPLATE/brief.md` exists with the template's sections, and AGENTS.md says the issue body is the brief.                                                                                                                               |
 | 4    | An inventory epic exists and the owner has settled every row (its Decided section says so); no ADRs means nothing to inventory.                                                                                                                      |
 | 5    | Every row the owner settled as live is in a rules file. Without an inventory, list the rules files and the areas they cover, and call it partly done.                                                                                                |
-| 6    | The citation grep's remaining matches are only external facts and words that are not citations.                                                                                                                                                      |
+| 6    | The citation search's remaining matches (`gocomments find` in Go, see [references/go.md](references/go.md#step-6-gocomments)) are only external facts and words that are not citations.                                                              |
 | 7    | No ADR directory, and AGENTS.md says there are no ADRs and is under 200 lines.                                                                                                                                                                       |
 
 Then:
@@ -80,7 +82,7 @@ Read each step's reference file before doing that step; the templates are in `te
 | 3. The brief       | `.github/ISSUE_TEMPLATE/brief.md`, and AGENTS.md's "Working in a session" says the issue is the brief.                                                                                   | [references/issue-brief.md](references/issue-brief.md)                                                                   |
 | 4. The inventory   | No PR: an epic issue that classifies every ADR decision as live, history or superseded, for the owner to settle.                                                                         | [references/inventory.md](references/inventory.md)                                                                       |
 | 5. Rules files     | One PR per area: the live rules from the inventory, as `.claude/rules/<area>.md`.                                                                                                        | [references/rules-files.md](references/rules-files.md)                                                                   |
-| 6. Comments        | One PR per package or area: comments say what, with no citations or history; only comment lines change.                                                                                  | [references/comments.md](references/comments.md)                                                                         |
+| 6. Comments        | One PR per package or area: comments follow the comment rule, with no citations or history; only comment lines change.                                                                   | [references/comments.md](references/comments.md)                                                                         |
 | 7. Retire the ADRs | Delete the ADR directory; AGENTS.md gets its short architecture list and its pointers to the rules files, and drops every mention of ADRs.                                               | [references/agents-md.md](references/agents-md.md)                                                                       |
 
 Steps 1 to 3 change only how new work is written, so they can start at once and stop new citations and amendments while the rest is done.
@@ -101,7 +103,7 @@ The reset is done when:
 ## The pilot, as worked examples
 
 - [asteroid-computing/orca#4](https://github.com/asteroid-computing/orca/pull/4): AGENTS.md, five rules files, the brief template and the reviewer in one docs PR, for a new repository with no code history of its own.
-- [asteroid-computing/orca#12](https://github.com/asteroid-computing/orca/pull/12): every comment in 54 files made to say what, with no code changed.
+- [asteroid-computing/orca#12](https://github.com/asteroid-computing/orca/pull/12): every comment in 54 files cleared of citations and history, with no code changed.
 - [ajbeck/obby#401](https://github.com/ajbeck/obby/pull/401): an existing repository's AGENTS.md sends new decisions to issues and rules files, while its ADRs still describe what was built.
 - [ajbeck/obby#418](https://github.com/ajbeck/obby/pull/418): the reviewer checks acceptance criteria, Decided sections and rules files, and that new comments cite no issue or decision.
 - orca's [AGENTS.md](https://github.com/asteroid-computing/orca/blob/main/AGENTS.md), [rules](https://github.com/asteroid-computing/orca/tree/main/.claude/rules), [brief template](https://github.com/asteroid-computing/orca/blob/main/.github/ISSUE_TEMPLATE/brief.md) and [reviewer](https://github.com/asteroid-computing/orca/blob/main/.claude/agents/pr-reviewer.md) are the finished shape.
