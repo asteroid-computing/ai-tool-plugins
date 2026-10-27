@@ -319,10 +319,11 @@ func git(t *testing.T, dir string, args ...string) {
 }
 
 func TestRunSameInAModuleSubdirectory(t *testing.T) {
-	gitRepo(t)
+	root := gitRepo(t)
 	write(t, "s.go", "package m\n\n// F returns one.\nfunc F() int { return 1 }\n")
+	write(t, filepath.Join(root, "outside.go"), "package outside\n\nfunc G() int { return 2 }\n")
 	if code, err := runSame("HEAD"); err != nil || code != 0 {
-		t.Fatalf("runSame() after a comment change = %d, %v; want 0, nil", code, err)
+		t.Fatalf("runSame() after a comment change, with a new Go file outside the module = %d, %v; want 0, nil", code, err)
 	}
 	write(t, "s.go", "package m\n\n// F returns one.\nfunc F() int { return 2 }\n")
 	if code, err := runSame("HEAD"); err != nil || code != 1 {
