@@ -31,7 +31,7 @@ Add the comment rule to the rules for all work, because the reviewer's check alo
 - **Comments follow the Google Go Style Guide** (https://google.github.io/styleguide/go/guide#clarity, https://go.dev/doc/comment).
   A doc comment says what the package, type or function is and does, for anyone using it: what it returns or does, its special cases, its units, its errors, and whether it is safe for concurrent use.
   A comment in a function body explains why the code does what it does where its names cannot, and never restates what the code already says: why an ignored error is safe, what an empty `switch` clause is for, what a line that looks common but is not does.
-  Every comment is about the code it sits on and stays true while that code is unchanged: none cites an ADR, an issue, a PR, a decision or a question, tells the history, or holds a `TODO`, `FIXME` or `BUG` note, because work still to do is an issue; an external fact the code depends on (for example `golang/go#22682`) may be named.
+  Every comment is about the code it sits on and stays true while that code is unchanged: none cites an ADR, an issue, a PR, a decision or a question, tells the history, or holds a `TODO`, `FIXME`, `XXX` or `BUG` note, because work still to do is an issue; an external fact the code depends on (for example `golang/go#22682`) may be named.
   Directives (`//go:build`, `//go:generate`, `//go:embed` and the rest, https://go.dev/wiki/Comments) are code, not comments.
 ```
 

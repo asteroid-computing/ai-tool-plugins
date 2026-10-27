@@ -1,7 +1,11 @@
 package main
 
 import (
+	"os"
+	"os/exec"
+	"path/filepath"
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -203,7 +207,13 @@ func TestCandidate(t *testing.T) {
 		"// FIXME: racy":                                    true,
 		"// XXX this is odd":                                true,
 		"// BUG(aj): not cleaned up":                        true,
+		"// see #4":                                         true,
+		"// as orca#4 did":                                  true,
+		"// see issue 42":                                   true,
+		"// Issues 7 and 8":                                 true,
+		"// PR #12 fixed it":                                true,
 		"// TODOS are not notes":                            false,
+		"// tissue 4 is not an issue":                       false,
 		"// MADR 3 is not an ADR":                           false,
 		"// the connection is no longer usable after Close": false,
 		"// Kind is a kind of event.":                       false,
@@ -244,5 +254,88 @@ func TestDiffBeyondCommentsExampleOutput(t *testing.T) {
 	}
 	if want := "an example's expected output changed"; got != want {
 		t.Errorf("diffBeyondComments() = %q, want %q", got, want)
+	}
+}
+
+func TestChangesListsAPathOnce(t *testing.T) {
+	diff := []byte("D\x00kept.go\x00")
+	untracked := []byte("kept.go\x00")
+	want := []change{{Status: "D", Path: "kept.go"}}
+	if got := changes(diff, untracked); !reflect.DeepEqual(got, want) {
+		t.Errorf("changes() = %#v, want %#v", got, want)
+	}
+}
+
+func TestDiffBeyondCommentsExampleOutputAnyCase(t *testing.T) {
+	old := "package p\n\nfunc ExampleF() {\n\tprintln(2)\n\t// output:\n\t// 2\n}\n"
+	cur := "package p\n\nfunc ExampleF() {\n\tprintln(2)\n\t// output:\n\t// 3\n}\n"
+	got, err := diffBeyondComments("p_test.go", []byte(old), []byte(cur))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want := "an example's expected output changed"; got != want {
+		t.Errorf("diffBeyondComments() = %q, want %q", got, want)
+	}
+}
+
+// gitRepo makes a git repository in a temporary directory, with a Go module in its svc/go subdirectory, commits it, and changes into the module for the rest of the test.
+func gitRepo(t *testing.T) string {
+	t.Helper()
+	root := t.TempDir()
+	module := filepath.Join(root, "svc", "go")
+	if err := os.MkdirAll(module, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	write(t, filepath.Join(module, "go.mod"), "module m\n\ngo 1.22\n")
+	write(t, filepath.Join(module, "s.go"), "package m\n\n// F returns one (#12).\nfunc F() int { return 1 }\n")
+	git(t, root, "init", "-q", "-b", "main")
+	git(t, root, "add", "-A")
+	git(t, root, "-c", "user.email=t@example.com", "-c", "user.name=t", "commit", "-q", "-m", "base")
+	wd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chdir(module); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { os.Chdir(wd) })
+	return root
+}
+
+func write(t *testing.T, path, content string) {
+	t.Helper()
+	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func git(t *testing.T, dir string, args ...string) {
+	t.Helper()
+	cmd := exec.Command("git", args...)
+	cmd.Dir = dir
+	if out, err := cmd.CombinedOutput(); err != nil {
+		t.Fatalf("git %v: %v: %s", args, err, out)
+	}
+}
+
+func TestRunSameInAModuleSubdirectory(t *testing.T) {
+	gitRepo(t)
+	write(t, "s.go", "package m\n\n// F returns one.\nfunc F() int { return 1 }\n")
+	if code, err := runSame("HEAD"); err != nil || code != 0 {
+		t.Fatalf("runSame() after a comment change = %d, %v; want 0, nil", code, err)
+	}
+	write(t, "s.go", "package m\n\n// F returns one.\nfunc F() int { return 2 }\n")
+	if code, err := runSame("HEAD"); err != nil || code != 1 {
+		t.Fatalf("runSame() after a code change = %d, %v; want 1, nil", code, err)
+	}
+}
+
+func TestRunSameWithNoCommonAncestor(t *testing.T) {
+	root := gitRepo(t)
+	git(t, root, "checkout", "-q", "--orphan", "other")
+	git(t, root, "-c", "user.email=t@example.com", "-c", "user.name=t", "commit", "-q", "-m", "other")
+	_, err := runSame("main")
+	if err == nil || !strings.Contains(err.Error(), "no common ancestor") {
+		t.Errorf("runSame() error = %v, want one that says there is no common ancestor", err)
 	}
 }

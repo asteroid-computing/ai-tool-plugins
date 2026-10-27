@@ -39,6 +39,7 @@ When the reset is done, the repository has:
   ```bash
   TOOL="${CLAUDE_SKILL_DIR}/scripts/gocomments"
   ```
+  A shell variable does not outlive its command, so set `TOOL` at the start of every command that uses it, here and in the reference files: `TOOL="${CLAUDE_SKILL_DIR}/scripts/gocomments"; …`.
 - **If the repository has an orchestrator** (`.claude/orchestrator.json` and the orchestrator skill), each PR below is an issue on its board written as a brief, and a worker session takes it; this skill then plans and writes those issues.
   Otherwise do the PRs one at a time here, each merged before the next one that depends on it starts.
 
@@ -55,7 +56,7 @@ git grep -nE -f "$TOOL/pattern.txt" -- ':!docs/adr' ':!CHANGELOG.md' ':!*.md' | 
 gh issue list --state all --search 'ADR inventory in:title,body' --limit 10
 ```
 
-The grep counts candidates in code and config, not citations: read a sample of matches before calling step 6 done or not started, and use the fuller pattern in [references/comments.md](references/comments.md) for the real pass.
+The grep counts candidates in code and config, not citations: read a sample of matches before calling step 6 done or not started; in Go, `gocomments find` ([references/go.md](references/go.md#step-6-gocomments)) searches comments only.
 Then read AGENTS.md (or CLAUDE.md) for where it says decisions, rules and comments are written.
 Report the state to the owner as one line per step, judged by its test:
 
