@@ -10,12 +10,13 @@
 // A file that does not parse is listed as not checked, and the rest are still searched.
 // It exits 1 when it lists anything.
 //
-// same compares every .go file that differs between the working tree and the commit where it left base (git merge-base base HEAD), and reports each whose tokens, directives, cgo preamble or examples' expected output differ.
+// same compares every .go file under the -repo directory that differs between the working tree and the commit where it left base (git merge-base base HEAD), and reports each whose tokens, directives, cgo preamble or examples' expected output differ.
 // Added and deleted .go files are reported too: a rename shows as both, and an untracked file counts as added.
 // A .go file that does not parse is reported, and changed files of other types are listed as not checked.
 // It exits 1 when any .go file changed more than its comments.
 //
-// Both run in the directory named by -repo, default the current one; `go run -C` builds the tool in its own directory, so pass -repo "$PWD".
+// Both run in the directory named by -repo, default the current one: the root of the Go module, which may be a subdirectory of its git repository.
+// `go run -C` builds the tool in its own directory, so pass -repo "$PWD".
 package main
 
 import (
@@ -46,7 +47,7 @@ var pattern string
 var candidate = regexp.MustCompile(strings.TrimSpace(pattern))
 
 func main() {
-	repo := flag.String("repo", ".", "the directory to run in: the module's root")
+	repo := flag.String("repo", ".", "the directory to run in: the Go module's root, which may be inside a larger git repository")
 	flag.Usage = func() {
 		fmt.Fprintln(os.Stderr, "usage: gocomments [-repo dir] find [path ...]")
 		fmt.Fprintln(os.Stderr, "       gocomments [-repo dir] same <base>")
@@ -199,6 +200,9 @@ func cgoPreamble(f *ast.File) *ast.CommentGroup {
 	return nil
 }
 
+// outputPrefix matches the start of an example's expected output, as go/doc and go test read it, in any case.
+var outputPrefix = regexp.MustCompile(`(?i)^[[:space:]]*(unordered )?output:`)
+
 // exampleOutputs returns the comment groups in Example functions that hold their expected output.
 func exampleOutputs(f *ast.File) []*ast.CommentGroup {
 	var groups []*ast.CommentGroup
@@ -211,8 +215,7 @@ func exampleOutputs(f *ast.File) []*ast.CommentGroup {
 			if g.Pos() < fn.Body.Lbrace || g.End() > fn.Body.Rbrace {
 				continue
 			}
-			text := strings.TrimSpace(g.Text())
-			if strings.HasPrefix(text, "Output:") || strings.HasPrefix(text, "Unordered output:") {
+			if outputPrefix.MatchString(g.Text()) {
 				groups = append(groups, g)
 			}
 		}
@@ -228,11 +231,15 @@ type change struct {
 
 func runSame(base string) (int, error) {
 	out, err := exec.Command("git", "merge-base", base, "HEAD").Output()
+	var exit *exec.ExitError
+	if errors.As(err, &exit) && exit.ExitCode() == 1 && len(bytes.TrimSpace(exit.Stderr)) == 0 {
+		return 2, fmt.Errorf("finding where HEAD left %s: they have no common ancestor", base)
+	}
 	if err != nil {
 		return 2, fmt.Errorf("finding where HEAD left %s: %w", base, gitError(err))
 	}
 	from := strings.TrimSpace(string(out))
-	diff, err := exec.Command("git", "diff", "--name-status", "--no-renames", "-z", from, "--").Output()
+	diff, err := exec.Command("git", "diff", "--name-status", "--no-renames", "--relative", "-z", from, "--").Output()
 	if err != nil {
 		return 2, fmt.Errorf("listing changes since %s: %w", from, gitError(err))
 	}
@@ -255,7 +262,7 @@ func runSame(base string) (int, error) {
 			changed++
 			continue
 		}
-		old, err := exec.Command("git", "show", from+":"+c.Path).Output()
+		old, err := exec.Command("git", "show", from+":./"+c.Path).Output()
 		if err != nil {
 			return 2, fmt.Errorf("reading %s at %s: %w", c.Path, from, gitError(err))
 		}
@@ -278,15 +285,17 @@ func runSame(base string) (int, error) {
 	return 0, nil
 }
 
-// changes reads git diff --name-status -z output and git ls-files -z output, whose paths count as added.
+// changes reads git diff --name-status -z output and git ls-files -z output, whose paths count as added unless the diff already lists them.
 func changes(diff, untracked []byte) []change {
 	var list []change
+	seen := map[string]bool{}
 	fields := strings.Split(string(diff), "\x00")
 	for i := 0; i+1 < len(fields); i += 2 {
 		list = append(list, change{Status: fields[i], Path: fields[i+1]})
+		seen[fields[i+1]] = true
 	}
 	for _, path := range strings.Split(string(untracked), "\x00") {
-		if path != "" {
+		if path != "" && !seen[path] {
 			list = append(list, change{Status: "A", Path: path})
 		}
 	}

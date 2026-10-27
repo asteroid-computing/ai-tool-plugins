@@ -57,10 +57,10 @@ If such a line was not meant as a heading, end it with a full stop or a colon in
 ## Step 6: `gocomments`
 
 The skill ships a small tool, using only the standard library, in `scripts/gocomments/` next to SKILL.md.
-Run it from the target repository's root; `go run -C` builds it in its own directory, so `-repo` says where to run:
+Run it from the root of the Go module, which may be a subdirectory of its git repository; `go run -C` builds the tool in its own directory, so `-repo` says where to run:
 
 ```bash
-# TOOL is set as SKILL.md says: the skill's scripts/gocomments directory
+TOOL="<the path SKILL.md gives>"                                  # set it in every command
 go run -C "$TOOL" . -repo "$PWD" find ./internal/store            # list candidate comment lines
 go run -C "$TOOL" . -repo "$PWD" same origin/main                 # prove only comments changed
 ```
@@ -70,7 +70,7 @@ go run -C "$TOOL" . -repo "$PWD" same origin/main                 # prove only c
   A file that does not parse is printed as not checked, and the search goes on.
   It exits 1 when it prints anything.
   Its matches are candidates: an external fact such as `golang/go#22682` matches too, and the PR body says why each remaining match stays.
-- **`same <base>`** compares every `.go` file that differs between the working tree and the commit where the branch left `<base>` (`git merge-base <base> HEAD`), so commits that landed on main since do not count.
+- **`same <base>`** compares every `.go` file that differs between the working tree and the commit where the branch left `<base>` (`git merge-base <base> HEAD`), so commits that landed on main since do not count; it looks only at files under the module's directory, and stops with an error when the branch and `<base>` have no common ancestor.
   It compares each file's tokens without comments, its directives, its cgo preamble and its examples' expected output.
   It prints each file that changed more than its comments, with the first line that differs; each added (including untracked), deleted or generated `.go` file, a rename showing as one deleted and one added; and each `.go` file that does not parse.
   It lists other changed files as not checked, and exits 1 when any `.go` file changed more than its comments.

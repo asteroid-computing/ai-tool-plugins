@@ -6,6 +6,7 @@ Start from [`templates/pr-reviewer.md`](../templates/pr-reviewer.md), and fill i
 
 - `<owner/repo>`: the repository;
 - `<the repository's risky paths …>`: the code where a mistake costs most, named by package or file;
+- `<scratchpad>`: left as it is; it is the reviewer's own scratch directory when it runs;
 - `<pattern>`: the line in `$TOOL/pattern.txt`, pasted in as it is, since the reviewer runs in the target repository without this skill;
 - `<gocomments line>`: in a Go repository, `, and check that the PR body reports gocomments same origin/main passing`; elsewhere, nothing.
   The session that writes a comment PR runs `gocomments same` with this skill loaded and says so in the PR body ([comments.md](comments.md#cleaning-a-repositorys-comments)); the reviewer, which runs without the skill, checks the claim and reads the lines.
