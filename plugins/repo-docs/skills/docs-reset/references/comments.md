@@ -95,6 +95,7 @@ In a Go repository, read [go.md](go.md) first: it has what a cleanup must not to
    TOOL="<the path SKILL.md gives>"                                  # set it in every command
    git grep -nE -f "$TOOL/pattern.txt" -- ':!docs/adr' ':!CHANGELOG.md' ':!.claude/rules'
    ```
+   The pattern leaves out "used to", which as often means "for" ("can be used to send") as it tells a history, and `&#` HTML entities such as `&#8217;` in strings; read for history by eye.
    Either way the matches are candidates: read each in context, because only a reader can tell a citation from a fixture.
    Check the comments in templates, CSS, JS, shell and YAML too (`{{/* */}}`, `/* */`, `#`, `<!-- -->`).
 2. **Slice it.** One PR per package or area, small enough for a reviewer to read every line, each closing its own brief issue from the inventory epic.

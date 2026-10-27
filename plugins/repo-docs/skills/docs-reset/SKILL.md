@@ -40,6 +40,8 @@ When the reset is done, the repository has:
   TOOL="${CLAUDE_SKILL_DIR}/scripts/gocomments"
   ```
   A shell variable does not outlive its command, so set `TOOL` at the start of every command that uses it, here and in the reference files: `TOOL="${CLAUDE_SKILL_DIR}/scripts/gocomments"; …`.
+  Claude Code writes the skill's absolute directory into that line; on a host that does not, such as Codex, `TOOL` comes out as `/scripts/gocomments`, so set it to the `scripts/gocomments` directory next to the SKILL.md you read instead.
+  Check it before relying on it: `[ -f "$TOOL/pattern.txt" ] || echo "TOOL is not set"`.
 - **If the repository has an orchestrator** (`.claude/orchestrator.json` and the orchestrator skill), each PR below is an issue on its board written as a brief, and a worker session takes it; this skill then plans and writes those issues.
   Otherwise do the PRs one at a time here, each merged before the next one that depends on it starts.
 
@@ -50,6 +52,7 @@ Look at an up-to-date main (`git fetch`, then read `origin/main` or a clean chec
 
 ```bash
 TOOL="${CLAUDE_SKILL_DIR}/scripts/gocomments"
+[ -f "$TOOL/pattern.txt" ] || echo "TOOL is not set: the searches below would find nothing"
 for d in go.mod go.work docs/adr docs/decisions doc/adr .claude/rules .github/ISSUE_TEMPLATE .claude/agents; do [ -e "$d" ] && echo "present: $d" || echo "absent:  $d"; done
 ls .claude/rules .github/ISSUE_TEMPLATE .claude/agents 2>/dev/null
 wc -l AGENTS.md CLAUDE.md 2>/dev/null
@@ -63,7 +66,7 @@ Report the state to the owner as one line per step, judged by its test:
 
 | Step | Done when                                                                                                                                                                                                                                            |
 | ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1    | AGENTS.md sends new decisions to the issue's Decided section and `.claude/rules`, never an ADR; says comments cite no issue, PR or decision; and, while ADRs exist, says a rules file wins over an ADR. Any one of the three missing is partly done. |
+| 1    | AGENTS.md sends new decisions to the issue's Decided section and `.claude/rules`, never an ADR; states the comment rule as [references/comments.md](references/comments.md) gives it (doc comments say what, other comments say why, the test, and no TODOs), not an older form such as "say what, never why"; and, while ADRs exist, says a rules file wins over an ADR. Any of these missing is partly done. |
 | 2    | The reviewer reads the rules files for the changed paths and checks acceptance criteria, the Decided section, no new ADR or amendment, and the comment rule.                                                                                         |
 | 3    | `.github/ISSUE_TEMPLATE/brief.md` exists with the template's sections, and AGENTS.md says the issue body is the brief.                                                                                                                               |
 | 4    | An inventory epic exists and the owner has settled every row (its Decided section says so); no ADRs means nothing to inventory.                                                                                                                      |

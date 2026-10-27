@@ -76,4 +76,6 @@ go run -C "$TOOL" . -repo "$PWD" same origin/main                 # prove only c
   It lists other changed files as not checked, and exits 1 when any `.go` file changed more than its comments.
   Run it before pushing a comment PR, and say in the PR body that it passed; a reviewer with this skill loaded reruns it on the PR's checkout.
 
+If `go run` fails with `compile: version "goX" does not match go tool version "goY"`, the shell's `GOROOT` names a different Go from the `go` on `PATH`, as a version manager can leave it; run the tool with `env -u GOROOT go run …`.
+
 Then verify as for any Go change: `gofmt -l` prints nothing, `go vet ./...` and `go test ./...` pass (or the repository's own gate, such as `./walle check`), and the rewritten package docs read well in `go doc` or a local [pkgsite](https://pkg.go.dev/golang.org/x/pkgsite/cmd/pkgsite) ([Preview](https://google.github.io/styleguide/go/best-practices#documentation-preview)).

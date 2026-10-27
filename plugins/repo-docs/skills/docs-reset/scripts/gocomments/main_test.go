@@ -27,7 +27,7 @@ type Kind int
 
 func f() {
 	// The check runs under the mutex, so two writers cannot both append.
-	_ = 1 // this used to be 2
+	_ = 1 // previously 2
 }
 
 func ExampleKind() {
@@ -44,7 +44,7 @@ func TestFindCandidates(t *testing.T) {
 	want := []match{
 		{Line: 3, Text: "// Package p keeps the log (ADR 0004, decision 6)."},
 		{Line: 14, Text: "// Kind is a kind of event; see golang/go#22682."},
-		{Line: 19, Text: "// this used to be 2"},
+		{Line: 19, Text: "// previously 2"},
 	}
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("findCandidates() = %#v, want %#v", got, want)
@@ -201,7 +201,10 @@ func TestCandidate(t *testing.T) {
 		"// github.com/o/r/issues/7":                        true,
 		"// github.com/o/r/pull/7":                          true,
 		"// as amended 2026-10-21":                          true,
-		"// it used to be 2":                                true,
+		"// it used to be 2":                                false,
+		"// so a sign-in cannot be used to send someone":    false,
+		"// writes &#8217; for the apostrophe":              false,
+		"// (#8217)":                                        true,
 		"// previously a map":                               true,
 		"// TODO(aj): handle retries":                       true,
 		"// FIXME: racy":                                    true,
