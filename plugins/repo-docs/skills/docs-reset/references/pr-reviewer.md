@@ -27,7 +27,7 @@ Keep the repository's own checks (its correctness hot spots, privacy, device con
    The PR adds no file under the ADR directory and changes no ADR, unless it is the step 7 PR that deletes them.
 5. **Comments follow the comment rule** ([comments.md](comments.md)).
    Every new or changed doc comment says what the code is and does for its users; every other new or changed comment explains why where the names cannot, and none restates what the code already says; every comment passes [the test](comments.md#the-test), so none cites an issue, PR, ADR, decision or question, tells the history or holds a TODO.
-   A quick pass in Go: `gocomments find` on the PR's checkout ([go.md](go.md)); in any language: `gh pr diff N | grep '^+' | grep -E -f "$TOOL/pattern.txt"`.
+   A quick pass in Go: `gocomments find` on the PR's checkout ([go.md](go.md)); in any language: `TOOL="<the path SKILL.md gives>"; gh pr diff N | grep '^+' | grep -E -f "$TOOL/pattern.txt"`.
    Then read the diff for what a pattern cannot see.
    For a PR that should change only comments, the PR body reports `gocomments same origin/main` passing in Go, and a reviewer with this skill loaded reruns it.
 6. **Decisions in words.**

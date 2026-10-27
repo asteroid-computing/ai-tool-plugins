@@ -49,6 +49,7 @@ Before proposing anything, find out which steps are already done, so that a migr
 Look at an up-to-date main (`git fetch`, then read `origin/main` or a clean checkout of it), not a feature branch.
 
 ```bash
+TOOL="${CLAUDE_SKILL_DIR}/scripts/gocomments"
 for d in go.mod go.work docs/adr docs/decisions doc/adr .claude/rules .github/ISSUE_TEMPLATE .claude/agents; do [ -e "$d" ] && echo "present: $d" || echo "absent:  $d"; done
 ls .claude/rules .github/ISSUE_TEMPLATE .claude/agents 2>/dev/null
 wc -l AGENTS.md CLAUDE.md 2>/dev/null

@@ -92,6 +92,7 @@ In a Go repository, read [go.md](go.md) first: it has what a cleanup must not to
 1. **Find them.**
    In Go, `gocomments find`; in other languages, the same pattern, from the skill's `pattern.txt`:
    ```bash
+   TOOL="<the path SKILL.md gives>"                                  # set it in every command
    git grep -nE -f "$TOOL/pattern.txt" -- ':!docs/adr' ':!CHANGELOG.md' ':!.claude/rules'
    ```
    Either way the matches are candidates: read each in context, because only a reader can tell a citation from a fixture.
