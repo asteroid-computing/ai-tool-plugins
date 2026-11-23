@@ -1,0 +1,41 @@
+{
+  "name": "data-modeling",
+  "version": "0.1.0",
+  "description": "Skills for designing data models, starting with Amazon DynamoDB tables, keys, indexes and access patterns.",
+  "author": {
+    "name": "AJ Beck",
+    "email": "aj@asteroidcomputing.com",
+    "url": "https://github.com/ajbeck"
+  },
+  "homepage": "https://github.com/asteroid-computing/ai-tool-plugins",
+  "repository": "https://github.com/asteroid-computing/ai-tool-plugins",
+  "license": "Apache-2.0",
+  "keywords": [
+    "data-modeling",
+    "dynamodb",
+    "nosql",
+    "access-patterns",
+    "aws"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Data Modeling",
+    "shortDescription": "Design DynamoDB tables from access patterns",
+    "longDescription": "Skills for designing data models. designing-dynamodb-tables leads a design from entities and access patterns to table boundaries, primary keys and secondary indexes, applies relationship, filtering, sorting, integrity, scaling and migration strategies, writes an entity chart and an access-pattern chart, and checks the design against current AWS limits.",
+    "developerName": "AJ Beck",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/asteroid-computing/ai-tool-plugins",
+    "defaultPrompt": [
+      "Design the DynamoDB table for this feature.",
+      "Review this DynamoDB data model.",
+      "Add this access pattern to our DynamoDB table."
+    ],
+    "brandColor": "#4053D6",
+    "screenshots": []
+  }
+}
