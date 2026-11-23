@@ -67,7 +67,7 @@ Why it fails: the request pays for each item read. Pages stop at 1 MB before the
 Fix: move the condition into a key or a sparse index. See [filtering.md](filtering.md).
 
 **A count calculated by a Query on each read.**
-Why it fails: the read cost grows with the number of items.
+Why it fails: the read cost grows with the number of items. A Query with `Select` set to `COUNT` also stops at 1 MB of read data, so a large count needs every page.
 Fix: store the count on the parent and change it in the same transaction as the items. See [writes-and-integrity.md](writes-and-integrity.md).
 
 **A read through a GSI that must see its own write**, for example a permission check right after a grant.

@@ -36,6 +36,7 @@ The sort key orders the items in an item collection, and a Query can select a ra
 A key condition on the sort key can use `=`, `<`, `<=`, `>`, `>=`, `BETWEEN` and `begins_with`.
 It cannot use `contains` or a suffix match, because the items are in sorted order and a Query reads one contiguous range.
 `begins_with` does not work on a Number sort key.
+`BETWEEN` includes both ends. For one day or one month, use `begins_with` with a fixed-width date, such as `2026-03-14`. Or end the range one unit before the next period starts.
 
 Design the sort key for the order and the ranges that the access patterns need.
 For the order rules, read [sorting-and-pagination.md](sorting-and-pagination.md).
@@ -117,6 +118,7 @@ In all other cases, use a GSI.
 ## Projections
 
 A projection decides which attributes DynamoDB copies into an index.
+Each projection includes the index keys and the base table keys. Thus, a Query on a GSI always returns the primary key of each item.
 
 - `ALL` copies every attribute. The read needs no second request, but storage and write cost increase.
 - `KEYS_ONLY` copies the keys. Use it when the access pattern needs only the identifiers, or when it reads the full items with `BatchGetItem` after the Query.

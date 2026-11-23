@@ -122,3 +122,4 @@ Thus, make each write safe to repeat.
 - For a count driven by events, write a marker item keyed by the event identifier. Put it in the same transaction as the count update, with `attribute_not_exists(PK)`. A repeated event then fails and changes nothing. Give the marker a TTL longer than the time in which a repeat can arrive.
 - `TransactWriteItems` accepts a `ClientRequestToken`. A repeat with the same token in the next 10 minutes does not write again. It does not protect against a repeat after that time.
 - A repeat with the same token must send the same request, or it fails with `IdempotentParameterMismatchException`. Choose each random value, such as a shard number, before the first attempt, and use the same value in each retry.
+- Make one token for each user action, not for each user. For example, a token from `pollId` and `viewerId` alone fails when the viewer changes the vote. The second request has a different option.
