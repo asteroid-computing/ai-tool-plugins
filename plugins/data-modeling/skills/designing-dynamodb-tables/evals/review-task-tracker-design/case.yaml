@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: review-task-tracker-design
+expected_outcome: |
+  review.md finds the planted flaws in a task-tracker DynamoDB design and gives a correct fix for each one.
