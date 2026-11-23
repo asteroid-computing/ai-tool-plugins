@@ -1,6 +1,6 @@
 # Filtering
 
-Use this file when an access pattern returns a subset of items, for example by status, by type or by a range of dates.
+Use this file for access patterns that return a subset of items, for example by status, by type or by dates.
 In DynamoDB, the keys do the filtering.
 A request pays for each item that it reads, not for each item that it returns.
 Thus, design the keys so that a request reads only the items that it returns.
@@ -48,7 +48,7 @@ A design with the status in the key can return an exact page size with `Limit`, 
 An item enters a GSI only when it has all the key attributes of the GSI.
 Use this to make an index that holds only the items that match a condition.
 
-- **A subset of one entity type.** Set the GSI key attributes only on matching items. For example, set them only on unread notifications. Remove them when the notification is read, and DynamoDB removes the item from the index.
+- **A subset of one entity type.** Set the GSI key attributes only on matching items. For example, set them only on support tickets that wait for a reply. Remove them when the ticket gets a reply, and DynamoDB removes the item from the index. Do not key the index on attributes that every item of the type has, because then the index holds every item.
 - **All items of one type.** Set the GSI key attributes only on one entity type. A Scan of that GSI then reads only that type. Use this for a rare job that must visit every item of a type, such as a monthly export of members. Do not put other entity types in this index.
 
 Let the data access code alone set and remove these attributes. See [implementation.md](implementation.md).
@@ -75,6 +75,6 @@ If the filter wastes capacity, move the condition into a key. See [migrations.md
 ## 6. Filter in the application
 
 Read the whole item collection and filter or sort it in the application or the browser.
-Use this method when the collection is small, for example less than 1 MB, and the user needs many filter and sort combinations.
-It also fits a condition that a key cannot express, such as free gaps in a calendar.
+Use this method when the collection is small, for example less than 1 MB. The user can then filter and sort in many ways.
+It also fits a condition that a key cannot express, such as free seats next to each other in a seating plan.
 Do not use it on a collection that grows without a limit.

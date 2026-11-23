@@ -28,7 +28,7 @@ Use this strategy only when both conditions are true:
 - No access pattern finds a child by a value of the child. DynamoDB cannot use a list or a map in a key.
 - The number of children has a known upper limit, and the parent item stays well below 400 KB at that limit.
 
-If the product can set a limit at no cost to the user, propose it. For example, a maximum of ten saved delivery addresses.
+If the product can set a limit at no cost to the user, propose it. For example, a maximum of ten emergency contacts.
 Write the limit in the entity chart.
 
 **2. Children in the parent's item collection, in the base table.**
@@ -40,13 +40,13 @@ Put the parent item at the end of the collection that the read starts from. See 
 
 **3. Children in the parent's item collection, in a GSI.**
 Give each child its own base table key, and give the parent and the children the same GSI partition key.
-Use this strategy when the parent's base item collection already serves a different relationship, or when each child needs its own base key, for example for uniqueness.
+Use this strategy in two cases. The parent's base item collection already serves a different relationship. Or each child needs its own base key, for example for uniqueness.
 Do not add many children to a base collection that another access pattern reads, because the Query must then read past them.
 
 **4. Hierarchical sort key.**
 Put the levels of a hierarchy in the sort key, from the top level down, for example `<region>#<city>#<siteId>`.
 `begins_with` on a prefix then returns every item at or below that level.
-Use this strategy when the hierarchy has more than two levels, and when an access pattern at a level wants all items below it.
+Use this strategy when the hierarchy has more than two levels. An access pattern at a level must want all items below it.
 Do not use it when a read wants one level only, because the result then includes the lower levels.
 
 **5. Separate item collection, without the parent.**
@@ -55,7 +55,7 @@ The parent item does not need to be in the collection.
 
 ## Many-to-many: decision order
 
-A many-to-many relationship has two read directions, for example "the courses of a student" and "the students of a course".
+A many-to-many relationship has two read directions, for example "the shifts of a volunteer" and "the volunteers of a shift".
 Choose a strategy for each direction.
 The two directions can use different strategies.
 
@@ -66,21 +66,21 @@ Model the other direction with a one-to-many strategy.
 Use this when the list has a known upper limit and the copied fields do not change.
 
 **2. Relationship item with an inverted index.**
-Store one item for each relationship, in the item collection of one entity: `PK = COURSE#<courseId>`, `SK = STUDENT#<studentId>`.
-Give the relationship item the swapped values in a GSI: partition key `studentId`, sort key `courseId`.
-The base table then gives the students of a course, and the GSI gives the courses of a student.
-Put on the relationship item only the fields that do not change, for example the enrolment date.
+Store one item for each relationship, in the item collection of one entity: `PK = SHIFT#<shiftId>`, `SK = VOLUNTEER#<volunteerId>`.
+Give the relationship item the swapped values in a GSI: partition key `volunteerId`, sort key `shiftId`.
+The base table then gives the volunteers of a shift, and the GSI gives the shifts of a volunteer.
+Put on the relationship item only the fields that do not change, for example the sign-up time.
 Read the fields that change from the entity items.
 Use this strategy for most many-to-many relationships.
 
 **3. Relationship items, then a batch read.**
 Store relationship items that hold only the identifiers.
 Read them with a Query, then read the related entity items with one `BatchGetItem`.
-Use this strategy when the related data changes often and many relationship items would hold copies of it. For example, a profile that thousands of followers see.
+Use this strategy when the related data changes often and many relationship items would hold copies of it. For example, the stock level of a product that is on thousands of wish lists.
 This is two requests, but the second is one batch, not one request for each item.
 
 **4. Entity graph.**
-Store each node as several items, one for each relationship type, and use a GSI to group the items by the related value.
+Store each node as several items, one for each relationship type. Use a GSI to group the items by the related value.
 Use this only for data with many relationship types between many node types.
 It is rarely needed.
 

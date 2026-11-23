@@ -7,7 +7,7 @@ Thus, keep them in one layer, and give the rest of the application plain objects
 ## One data access layer
 
 - Put all DynamoDB calls, key formats and item shapes in one module or package.
-- Give each access pattern one function, named for the pattern, for example `listAppointmentsForPractitioner(practitionerId, day)`.
+- Give each access pattern one function, named for the pattern, for example `listLoansForMember(memberId, month)`.
 - Return application objects, not raw items. Remove index attributes and DynamoDB type wrappers in this layer.
 - Let this layer alone set and remove index attributes. A caller must not know that an index exists.
 - Write each multi-item rule, such as a unique value or a count, as one transaction in this layer.
@@ -24,7 +24,7 @@ Keep the two kinds apart.
 
 ## The Type attribute
 
-Give each item a `Type` attribute with its entity name, for example `Appointment`.
+Give each item a `Type` attribute with its entity name, for example `Loan`.
 A backfill uses it to find the items of one type with a Scan filter.
 An export to an analytics system uses it to separate the entity types.
 It also makes an item easy to identify when you debug.
@@ -39,7 +39,7 @@ The data access layer is the schema.
 
 ## Expressions
 
-- Use expression attribute names, such as `#status`, for every attribute name. Many common words are reserved words, for example `status`, `name`, `count` and `date`, and names with a dot or a hyphen need them too.
+- Use expression attribute names, such as `#status`, for every attribute name. Many common words are reserved words, for example `status`, `name`, `count` and `date`. Names with a dot or a hyphen need them too.
 - Use expression attribute values for every value.
 - Check each key condition against sample keys in sorted order. See [sorting-and-pagination.md](sorting-and-pagination.md).
 

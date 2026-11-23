@@ -51,13 +51,14 @@ Before a design depends on a value, open its source and check it.
 
 ## Indexes
 
-| Limit                       | Value                                                     | Source                                                                                                     |
-| --------------------------- | --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| GSIs for each table         | 20 by default; you can request more; vector indexes count | https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ServiceQuotas.html                        |
-| GSI key attributes          | Up to 4 for the partition key and 4 for the sort key      | https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/GSI.DesignPattern.MultiAttributeKeys.html |
-| LSIs for each table         | 5; only when you create the table                         | https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ServiceQuotas.html                        |
-| Item collection with an LSI | 10 GB                                                     | https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/LSI.html                                  |
-| Projected attributes        | 100 named attributes across all indexes of a table        | https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ServiceQuotas.html                        |
+| Limit                       | Value                                                              | Source                                                                                                     |
+| --------------------------- | ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
+| GSIs for each table         | 20 by default; you can request more; vector indexes count          | https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ServiceQuotas.html                        |
+| GSI key attributes          | Up to 4 for the partition key and 4 for the sort key               | https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/GSI.DesignPattern.MultiAttributeKeys.html |
+| LSIs for each table         | 5; only when you create the table                                  | https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ServiceQuotas.html                        |
+| Item collection with an LSI | 10 GB                                                              | https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/LSI.html                                  |
+| Projected attributes        | 100 named attributes across all indexes of a table                 | https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ServiceQuotas.html                        |
+| GSI projection              | Cannot change after you create the index; a change needs a new GSI | https://aws.amazon.com/blogs/database/evolve-your-amazon-dynamodb-tables-data-model/                       |
 
 ## Throughput
 

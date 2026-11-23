@@ -39,9 +39,11 @@ This is additive when the existing collection has space for the new type: no oth
 Check the read direction and the sort key prefixes. See [sorting-and-pagination.md](sorting-and-pagination.md).
 
 **4. A new entity in a new item collection with existing items.**
-For example, the parent's item collection already serves a different relationship, so the parent and the new children must meet in a GSI.
+For example, the parent's item collection already serves a different relationship. Then the parent and the new children must meet in a GSI.
 Existing parent items need the GSI key attributes.
 If the GSI keys are attributes that the items already have, use a multi-attribute GSI key. DynamoDB then fills the new index from the existing items, and no backfill is necessary.
+But the index then holds every item that has those attributes, and each later write to those items also writes the index.
+If the index must hold only some items, use a new attribute, and backfill it only on those items.
 Otherwise, backfill the new attributes on the existing parents.
 
 **5. A new access pattern on existing items.**
@@ -77,6 +79,6 @@ A change to the format of key values, for example a new sort key prefix, is a ne
 2. Until the job ends, read the new key, and read the old key when the new key has no item.
 3. Update each item that stores the old key.
 
-A change to the key schema needs a new table and a copy of the data, for example with export to S3 and import from S3.
+A change to the key schema needs a new table and a copy of the data. Export to S3 and import from S3 can do the copy.
 This is the most expensive change.
 Thus, choose the key schema of a new table with care. See [keys-and-indexes.md](keys-and-indexes.md).

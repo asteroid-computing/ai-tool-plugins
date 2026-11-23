@@ -1,6 +1,6 @@
 # Sorting and pagination
 
-Use this file when an access pattern returns items in an order, returns the latest N items, or returns a list in pages.
+Use this file for access patterns that return items in an order, return the latest N items, or return pages.
 DynamoDB sorts items only by the sort key, and only in one item collection.
 Thus, put the order that an access pattern needs into a sort key.
 
@@ -33,7 +33,7 @@ Store each time in a key in one format with a fixed width, in UTC.
 
 Do not use a format that removes trailing zeros from the fraction. Some standard formats do this, and the width then changes, so the order is wrong.
 Do not use a local time or a display format, such as `14 Mar 2026`.
-Use the same format and type for a value in every item, because a string and a number with the same value are not equal.
+Use the same format and type for a value in every item. A string and a number with the same value are not equal.
 
 ## Unique identifiers that sort by time
 
@@ -74,7 +74,7 @@ If both child types need the same direction, put one of them in a GSI.
 
 Pad a number in a string key with zeros to a fixed width, for example `00042`.
 Choose a width that holds the largest value you can expect, then add two or three digits.
-Add an alarm when a value reaches a part of the maximum, for example 30%.
+Add an alarm when a value reaches half of the maximum.
 
 To read numbers in descending order with an ascending read, store the difference from the maximum: for width 5, store `99999 - n`, padded.
 This is rarely necessary. Use it only when one item collection must return two child types in the same order.
@@ -91,4 +91,4 @@ An offset reads and pays for every item that it skips.
 - When you decode a cursor, check that it belongs to the same item collection as the request. Otherwise, a client can read a different collection.
 - Only a missing `LastEvaluatedKey` shows the last page. A page can have no items and still have a `LastEvaluatedKey`.
 - To get the previous page, read in the opposite direction from the first item of the current page.
-- A URL can hold the cursor as a value from the item, for example `?before=<orderId>`, if that value is not secret.
+- A URL can hold the cursor as a value from the item, for example `?before=<itemId>`, if that value is not secret.
