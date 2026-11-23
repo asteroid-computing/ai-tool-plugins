@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: live-poll-hot-key
+expected_outcome: |
+  design.md redesigns a live-poll vote store that throttles at 30,000 votes per second on one poll. It explains the per-partition limit, shards the writes, keeps one vote per viewer with conditions, serves 200,000 viewers without reading the hot items directly, and plans capacity for the event.
