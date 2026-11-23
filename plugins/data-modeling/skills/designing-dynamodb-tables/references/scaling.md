@@ -21,6 +21,8 @@ One item always stays on one partition, so the limit applies in full to each ite
 When the table has no LSI, DynamoDB can split a busy item collection across partitions by sort key.
 It cannot do this when the writes go to a sort key that always increases or always decreases, such as a time. Then one key value keeps the limit of one partition.
 Item size counts. A strongly consistent read of a 20 KB item costs 5 read units. Thus, one item can serve about 600 such reads each second.
+A write costs one write unit for each 1 KB, rounded up, and a write in a transaction costs double. Thus, a 2 KB item in a transaction costs 4 write units.
+Count these units, not requests, when you compare a key with the limit.
 Check the current values in [limits.md](limits.md).
 
 Adaptive capacity moves capacity to a busy partition, and can put a busy item on its own partition.
@@ -38,6 +40,7 @@ If the peak can approach the limit, change the design before you write code.
 ## Write sharding
 
 When one logical key needs more writes than one partition serves, split it over N partition key values.
+Each shard must have its own partition key value. N sort key values under one partition key are not shards.
 
 - **Random suffix**: append a number from 1 to N to the key, for example `VOTES#<pollId>#7`. A read must query all N keys and combine the results. Use this for counts and totals.
 - **Calculated suffix**: append `hash(<itemId>) mod N`. A read of one known item calculates its key and needs one request. A read of all items still queries all N keys.
