@@ -1,0 +1,6 @@
+interface:
+  display_name: "Designing DynamoDB Tables"
+  short_description: "Design and review DynamoDB data models from access patterns"
+  default_prompt: "Use $designing-dynamodb-tables to design or review a DynamoDB data model from its access patterns."
+policy:
+  allow_implicit_invocation: true
