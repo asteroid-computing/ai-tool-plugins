@@ -10,7 +10,7 @@ We have a recipe app on a single DynamoDB table (PK/SK, on-demand, ~2.3M recipes
 - Recipe: PK = `RECIPE#<recipeId>`, SK = `#META`, attributes include recipeId, authorId, title, createdAt
 - Ingredient: PK = `RECIPE#<recipeId>`, SK = `ING#<nn>`
 - Step: PK = `RECIPE#<recipeId>`, SK = `STEP#<nn>`
-- Version (older revisions of the recipe): PK = `RECIPE#<recipeId>`, SK = `#V#<versionNo zero-padded>` (read newest first, descending from #META)
+- Version (older revisions of the recipe): PK = `RECIPE#<recipeId>`, SK = `#HIST#<versionNo zero-padded>` (sorts before #META; read newest first, descending from #META)
 - Author: PK = `AUTHOR#<authorId>`, SK = `#META`
 - GSI1 (GSI1PK, GSI1SK): Recipe items have GSI1PK = `AUTHOR#<authorId>`, GSI1SK = `RECIPE#<createdAt>` for the author page
 
