@@ -86,6 +86,20 @@ Skills for how a repository writes down its rules, decisions and briefs, from th
 
 **Codex status:** marketplace, plugin metadata, and skill metadata are present; the skill is explicit-invoke in both hosts.
 
+### `data-modeling`
+
+Skills for designing data models, starting with Amazon DynamoDB.
+
+```shell
+/plugin install data-modeling@asteroid-computing-tools
+```
+
+**Skills**
+
+- **`designing-dynamodb-tables`**: auto-loads when a task designs, reviews or changes a DynamoDB data model. It leads the agent from entities and access patterns to table boundaries, primary keys and secondary indexes. It then applies the strategies for relationships, filtering, sorting, integrity, scale and migrations, writes an entity chart and an access-pattern chart, and checks the design against current AWS limits. The method comes from Alex DeBrie's _The DynamoDB Book_ (2020), summarised and restructured, never quoted. Where AWS's guidance has moved on since the book, the skill follows the [DynamoDB developer guide](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/data-modeling.html) and keeps the book's advice in marked "Older pattern" sections. The limits it cites carry the date they were checked. Its test cases are in `skills/designing-dynamodb-tables/evals/`, in the layout `claude plugin eval` reads.
+
+**Codex status:** marketplace, plugin metadata, and skill metadata are present; the skill is implicit-invoke in both hosts.
+
 ## License
 
 [Apache-2.0](./LICENSE).
