@@ -1,6 +1,6 @@
 # Scaling
 
-Use this file when one key can receive high traffic, when a type of item has no natural partition key, or when you choose a capacity mode.
+Use this file for a key with high traffic, an item type with no natural partition key, or a capacity mode.
 DynamoDB spreads a table over partitions by the hash of the partition key.
 Each partition has a fixed limit on reads and writes per second.
 Thus, the traffic on one partition key value has a limit, and the design must stay below it.
@@ -20,7 +20,7 @@ One partition serves at most 3,000 read units and 1,000 write units each second,
 One item always stays on one partition, so the limit applies in full to each item.
 When the table has no LSI, DynamoDB can split a busy item collection across partitions by sort key.
 It cannot do this when the writes go to a sort key that always increases or always decreases, such as a time. Then one key value keeps the limit of one partition.
-Item size counts: a strongly consistent read of a 20 KB item costs 5 read units, so one item can serve about 600 such reads each second.
+Item size counts. A strongly consistent read of a 20 KB item costs 5 read units. Thus, one item can serve about 600 such reads each second.
 Check the current values in [limits.md](limits.md).
 
 Adaptive capacity moves capacity to a busy partition, and can put a busy item on its own partition.
@@ -41,7 +41,7 @@ When one logical key needs more writes than one partition serves, split it over 
 
 - **Random suffix**: append a number from 1 to N to the key, for example `VOTES#<pollId>#7`. A read must query all N keys and combine the results. Use this for counts and totals.
 - **Calculated suffix**: append `hash(<itemId>) mod N`. A read of one known item calculates its key and needs one request. A read of all items still queries all N keys.
-- **Time bucket**: put a period in the partition key, for example `FEED#2026-03-14`. Choose the period from the write rate, so that each bucket stays below the limit. A "latest N" read starts at the current bucket and goes back one bucket at a time. Set a maximum number of buckets for one read, so that a quiet period cannot make the read loop for a long time.
+- **Time bucket**: put a period in the partition key, for example `EVENTS#2026-03-14`. Choose the period from the write rate, so that each bucket stays below the limit. A "latest N" read starts at the current bucket and goes back one bucket at a time. Set a maximum number of buckets for one read. Then a quiet period cannot make the read continue for a long time.
 
 Choose N from the peak rate, with a margin.
 Let readers handle a larger N than the writers use, so that you can increase N later.
@@ -49,10 +49,10 @@ Store N in configuration, not in each request.
 
 ## Hot reads
 
-When many clients read the same item, for example a home page list:
+When many clients read the same item, for example a list of today's top scores:
 
 - Cache the result in the application, or use DAX.
-- Or store N copies of the item with keys `HOME#1` to `HOME#N`, and read one copy at random. Write all copies when the data changes, for example from a stream consumer.
+- Or store N copies of the item with keys `TOPSCORES#1` to `TOPSCORES#N`, and read one copy at random. Write all copies when the data changes, for example from a stream consumer.
 
 ## All items of one type
 
@@ -60,7 +60,7 @@ An access pattern such as "every member" has no natural partition key.
 
 - Do not put all items of the type under one constant partition key when the type has many writes. That key becomes a hot partition and a large collection.
 - For a rare job, use a sparse GSI that holds only that type, and scan the GSI. See [filtering.md](filtering.md).
-- For a small and bounded set, such as 50 categories, use one item that holds the list, or one collection under a constant key.
+- For a small and bounded set, such as 50 categories, use one item that holds the list. Or use one collection under a constant key.
 - For a list in order, use time buckets as above.
 
 ## Capacity modes

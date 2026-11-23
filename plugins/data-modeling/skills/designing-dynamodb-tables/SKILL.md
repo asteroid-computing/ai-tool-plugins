@@ -13,7 +13,7 @@ Thus, design from the access patterns, and validate the design before any code i
 
 Use these terms with these meanings only.
 
-- **Entity**: a type of object that the application stores, for example `Patient` or `Appointment`.
+- **Entity**: a type of object that the application stores, for example `Member` or `Loan`.
 - **Item**: one record in a table.
 - **Access pattern**: one read or one write that the application makes, with the inputs that the request has.
 - **Base table**: the table itself, not an index.
@@ -81,7 +81,7 @@ Entity chart, one row for each item type:
 ```markdown
 | Entity | Table | Partition key | Sort key | GSI keys | Notes |
 |---|---|---|---|---|---|
-| Appointment | clinic | `PRACTITIONER#<practitionerId>` | `APPT#<startTime>#<appointmentId>` | `byPatient`: patientId, startTime | Immutable after booking, except status |
+| Loan | library | `MEMBER#<memberId>` | `LOAN#<loanedAt>#<loanId>` | `byCopy`: copyId, loanedAt | Immutable after checkout, except returnedAt |
 ```
 
 Access-pattern chart, one row for each access pattern:
@@ -89,7 +89,7 @@ Access-pattern chart, one row for each access pattern:
 ```markdown
 | # | Access pattern | Inputs | Frequency | Operation | Table or index | Key condition | Notes |
 |---|---|---|---|---|---|---|---|
-| 3 | Practitioner's appointments for one day | practitionerId, date | Each calendar view | Query | clinic | PK = `PRACTITIONER#<id>`, SK begins_with `APPT#<date>` | Ascending |
+| 3 | Member's loans in one month | memberId, month | Each account page | Query | library | PK = `MEMBER#<id>`, SK begins_with `LOAN#<month>` | Descending |
 ```
 
 An item type that exists only for a rule, such as a uniqueness marker, gets its own row in the entity chart.

@@ -32,7 +32,7 @@ Fix: separate them when no access pattern reads them together. See [table-bounda
 Why it fails: DynamoDB cannot update a key attribute. Each change needs a delete and a put, and other items can point to the old key.
 Fix: use a stable identifier in the primary key, and put the changing value in a GSI key. See [keys-and-indexes.md](keys-and-indexes.md).
 
-**A key that the request cannot build**, for example a creation time in the partition key of an item that a URL finds by its identifier.
+**A key that the request cannot build.** For example, a creation time in the key of an item that a URL finds by its identifier.
 Why it fails: each read must first find the missing value, often with a second request or a Scan.
 Fix: build keys only from the inputs of the access pattern. See [keys-and-indexes.md](keys-and-indexes.md).
 
@@ -40,7 +40,7 @@ Fix: build keys only from the inputs of the access pattern. See [keys-and-indexe
 Why it fails: uppercase letters sort before lowercase letters, so the order is wrong and a prefix condition can miss items.
 Fix: use one case in keys. Keep the original text in an application attribute.
 
-**A time or a number of variable width in a string key**, for example `2026-3-4`, a time format that removes trailing zeros, or an unpadded `42`.
+**A time or a number of variable width in a string key.** Examples are `2026-3-4`, a time format that removes trailing zeros, and an unpadded `42`.
 Why it fails: strings sort one byte at a time, so `10` sorts before `9`.
 Fix: use a fixed width. See [sorting-and-pagination.md](sorting-and-pagination.md).
 
@@ -131,6 +131,10 @@ Fix: copy only values that do not change, or read the source item. See [relation
 **A GSI for each access pattern, when the primary keys can serve some of them.**
 Why it fails: each GSI adds write cost and an eventually consistent copy.
 Fix: serve as many patterns as possible with the base table keys first.
+
+**A "sparse" GSI keyed on attributes that every item of the type has.**
+Why it fails: the index holds every item, so it filters nothing and costs a write on each change.
+Fix: key the index on an attribute that only the matching items have. See [filtering.md](filtering.md).
 
 **An overloaded GSI when each query reads one entity type.**
 Why it fails: generic attributes and concatenated values make the keys hard to read and to change, with no read benefit.

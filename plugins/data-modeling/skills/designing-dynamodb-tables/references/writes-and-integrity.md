@@ -1,6 +1,6 @@
 # Writes and integrity
 
-Use this file to enforce a unique value, keep a count, write several items together, guard a state change, or make a retry safe.
+Use this file for unique values, counts, writes of several items together, state changes and safe retries.
 DynamoDB has no foreign keys, no unique constraints except the primary key, and no triggers in the write path.
 Thus, the write itself must carry each rule, as a condition expression or a transaction.
 
@@ -33,13 +33,13 @@ DynamoDB enforces uniqueness only on the primary key of the base table.
 A GSI cannot enforce it.
 
 - **One unique value**: put it in the primary key, and create the item with `attribute_not_exists(PK)`.
-- **Two or more unique values**, for example a username and an email address: keep the entity item keyed by one value. Add a marker item for each other value, for example `PK = EMAIL#<address>`, `SK = EMAIL#<address>`. Write the entity item and the marker items in one transaction, each with `attribute_not_exists(PK)`. If any value is in use, the whole transaction fails.
+- **Two or more unique values**, for example a member handle and a phone number: keep the entity item keyed by one value. Add a marker item for each other value, for example `PK = PHONE#<number>`, `SK = PHONE#<number>`. Write the entity item and the marker items in one transaction, each with `attribute_not_exists(PK)`. If any value is in use, the whole transaction fails.
 - **A change of a unique value**: in one transaction, delete the old marker item, put the new marker item with its condition, and update the entity item.
 
 Give a marker item only the attributes that identify its owner.
 Do not copy the entity's data to it, because then each update of the entity must be a transaction.
 
-Two entity types that share one name space, for example people and teams that share handles, need one key format for both, so that the key enforces uniqueness across both.
+Two entity types can share one name space, for example people and teams that share handles. Give them one key format, so that the key enforces uniqueness across both.
 
 ## State changes
 
@@ -68,7 +68,7 @@ A retry of the same update adds again.
 The condition on the related item is what makes the transaction safe to retry.
 
 `ADD` takes one value.
-To change a number by a calculated difference, for example when a user edits a rating, calculate the difference in the application and use `SET ratingSum = ratingSum + :delta`.
+When a user edits a rating, the sum changes by a difference. Calculate the difference in the application, and use `SET ratingSum = ratingSum + :delta`.
 
 Change a count only with `UpdateItem`.
 A `PutItem` of the whole parent item replaces the count with the value that the application read earlier.
@@ -85,10 +85,10 @@ Know these limits before a design depends on a transaction:
 - Up to 100 actions and 4 MB in total. Two actions cannot use the same item.
 - Each item costs two write units, or two read units, and the cost applies when the transaction fails too.
 - All items must be in one account and one Region.
-- A transaction fails when another transaction writes one of its items at the same time. The SDKs do not retry this failure (`TransactionCanceledException`), so the application must retry with backoff.
+- A transaction fails with `TransactionCanceledException` when another transaction writes one of its items at the same time. Its `CancellationReasons` show the conflict. Retry a conflict with backoff in the application, and test that the code does it.
 - Many transactions on one item at the same time fail often. A count that many requests change each second needs the sharding in [scaling.md](scaling.md), not a single item.
 
-If an operation can write more than 100 items, such as an order with an unlimited number of lines, it cannot be one transaction.
+An operation that can write more than 100 items cannot be one transaction. An example is a playlist import with no limit on its tracks.
 Limit the number of items, or split the write into steps that can resume.
 
 `BatchWriteItem` is not a transaction.
@@ -96,7 +96,7 @@ Each put or delete in a batch succeeds or fails separately, a batch cannot updat
 
 ## Sequential numbers
 
-Use a sequential number only when users need one, for example ticket number 42 of a project.
+Use a sequential number only when users need one, for example invoice number 1042 of a company.
 Otherwise, use a random or time-sorted identifier.
 
 1. Update the parent item with `SET lastNumber = lastNumber + :one` and `ReturnValues` set to `UPDATED_NEW`.
@@ -108,7 +108,7 @@ If the second request fails, the number is not used, so the sequence can have ga
 ## Singleton items
 
 A singleton item has a fixed key, for example `PK = CONFIG`, `SK = CONFIG`.
-Use it for state that is global to the application: a setting, a limit on jobs in progress, a short list for a home page.
+Use it for state that is global to the application: a setting, a global rate limit, or the current price list.
 Keep it small and bounded.
 A singleton that each request reads can become a hot key. See [scaling.md](scaling.md).
 
@@ -119,6 +119,6 @@ Thus, make each write safe to repeat.
 
 - A put with `attribute_not_exists(PK)` is safe: the repeat fails its condition.
 - An update that sets values is safe. An update that adds to a number is not.
-- For a count driven by events, write a marker item keyed by the event identifier, in the same transaction as the count update, with `attribute_not_exists(PK)`. A repeated event then fails and changes nothing. Give the marker a TTL longer than the time in which a repeat can arrive.
+- For a count driven by events, write a marker item keyed by the event identifier. Put it in the same transaction as the count update, with `attribute_not_exists(PK)`. A repeated event then fails and changes nothing. Give the marker a TTL longer than the time in which a repeat can arrive.
 - `TransactWriteItems` accepts a `ClientRequestToken`. A repeat with the same token in the next 10 minutes does not write again. It does not protect against a repeat after that time.
 - A repeat with the same token must send the same request, or it fails with `IdempotentParameterMismatchException`. Choose each random value, such as a shard number, before the first attempt, and use the same value in each retry.

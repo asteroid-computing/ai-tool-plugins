@@ -8,7 +8,7 @@ Put entities in the same table when an access pattern reads them together.
 Put entities in separate tables when no access pattern reads them together, or when their operational needs differ.
 
 Keep the number of tables small, because each table adds alarms, permissions and capacity settings.
-But do not force unrelated entities into one table, because one table also shares one backup policy, one encryption key, one table class and one stream.
+But do not force unrelated entities into one table. One table has one backup policy, one encryption key, one table class and one stream.
 
 ## Decision steps
 
