@@ -67,6 +67,13 @@ An update that adds to a number is not idempotent.
 A retry of the same update adds again.
 The condition on the related item is what makes the transaction safe to retry.
 
+`ADD` takes one value.
+To change a number by a calculated difference, for example when a user edits a rating, calculate the difference in the application and use `SET ratingSum = ratingSum + :delta`.
+
+Change a count only with `UpdateItem`.
+A `PutItem` of the whole parent item replaces the count with the value that the application read earlier.
+If the parent item is often saved whole, keep the counts in a separate item, for example `SK = STATS`.
+
 ## Transactions
 
 `TransactWriteItems` writes up to 100 items as one unit: all writes occur, or none.
@@ -78,7 +85,8 @@ Know these limits before a design depends on a transaction:
 - Up to 100 actions and 4 MB in total. Two actions cannot use the same item.
 - Each item costs two write units, or two read units, and the cost applies when the transaction fails too.
 - All items must be in one account and one Region.
-- A transaction fails when another transaction writes one of its items at the same time. Retry it.
+- A transaction fails when another transaction writes one of its items at the same time. The SDKs do not retry this failure (`TransactionCanceledException`), so the application must retry with backoff.
+- Many transactions on one item at the same time fail often. A count that many requests change each second needs the sharding in [scaling.md](scaling.md), not a single item.
 
 If an operation can write more than 100 items, such as an order with an unlimited number of lines, it cannot be one transaction.
 Limit the number of items, or split the write into steps that can resume.
@@ -113,3 +121,4 @@ Thus, make each write safe to repeat.
 - An update that sets values is safe. An update that adds to a number is not.
 - For a count driven by events, write a marker item keyed by the event identifier, in the same transaction as the count update, with `attribute_not_exists(PK)`. A repeated event then fails and changes nothing. Give the marker a TTL longer than the time in which a repeat can arrive.
 - `TransactWriteItems` accepts a `ClientRequestToken`. A repeat with the same token in the next 10 minutes does not write again. It does not protect against a repeat after that time.
+- A repeat with the same token must send the same request, or it fails with `IdempotentParameterMismatchException`. Choose each random value, such as a shard number, before the first attempt, and use the same value in each retry.
