@@ -17,13 +17,14 @@ Thus, the traffic on one partition key value has a limit, and the design must st
 ## The limit on one key
 
 One partition serves at most 3,000 read units and 1,000 write units each second, in both capacity modes.
-One item collection can spread over several partitions when the table has no LSI.
-But one item, and one key value at high traffic, stay on one partition.
+One item always stays on one partition, so the limit applies in full to each item.
+When the table has no LSI, DynamoDB can split a busy item collection across partitions by sort key.
+It cannot do this when the writes go to a sort key that always increases or always decreases, such as a time. Then one key value keeps the limit of one partition.
 Item size counts: a strongly consistent read of a 20 KB item costs 5 read units, so one item can serve about 600 such reads each second.
 Check the current values in [limits.md](limits.md).
 
 Adaptive capacity moves capacity to a busy partition, and can put a busy item on its own partition.
-It does not raise the limit of one partition, and it does not split a collection when the writes go to an increasing or decreasing sort key, for example a time.
+It does not raise the limit of one partition.
 
 ## Partition key choice
 
