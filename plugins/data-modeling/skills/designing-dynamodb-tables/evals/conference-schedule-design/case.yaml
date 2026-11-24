@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: conference-schedule-design
+expected_outcome: |
+  design.md holds a DynamoDB design for a conference app with several related entities. Each page is served by the fewest requests, with pre-joins or overloaded indexes only where they save requests. Copies of speaker and session data have stated update paths. Seat limits hold under retries. The agenda's read load is checked against one partition's limit. Every read and write is given as an exact request.

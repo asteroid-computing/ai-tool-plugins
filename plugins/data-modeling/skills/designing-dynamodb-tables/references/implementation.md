@@ -7,12 +7,12 @@ Thus, keep them in one layer, and give the rest of the application plain objects
 ## One data access layer
 
 - Put all DynamoDB calls, key formats and item shapes in one module or package.
-- Give each access pattern one function, named for the pattern, for example `listLoansForMember(memberId, month)`.
+- Give each entry of the query pattern library one function, with the name that the entry gives, for example `listLoansForMember(memberId, month)`.
 - Return application objects, not raw items. Remove index attributes and DynamoDB type wrappers in this layer.
 - Let this layer alone set and remove index attributes. A caller must not know that an index exists.
 - Write each multi-item rule, such as a unique value or a count, as one transaction in this layer.
 
-A key format then changes in one place, and the charts map to the functions one to one.
+A key format then changes in one place, and the library maps to the functions one to one.
 
 ## Index attributes and application attributes
 
@@ -60,8 +60,8 @@ Attribute names count toward the item size and the storage cost.
 Short names, such as `fn` for `firstName`, save storage only for a very large table with small items.
 For most tables, use readable names.
 
-## Charts in the repository
+## The library in the repository
 
-Keep the entity chart and the access-pattern chart in the repository's documentation.
+Keep the entity chart and the query pattern library in the repository's documentation. See [pattern-library.md](pattern-library.md).
 Update them in the same change as the code.
-A later session can then read the model without reading the data access layer.
+A later session can then read how the entities are designed to be used without reading the data access layer.

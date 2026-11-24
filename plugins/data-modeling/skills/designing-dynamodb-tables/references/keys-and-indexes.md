@@ -1,6 +1,6 @@
 # Keys and indexes
 
-Use this file for step 4 and step 5: design primary keys and secondary indexes.
+Use this file for step 6 and step 7: design primary keys and secondary indexes.
 
 ## Contents
 
@@ -10,6 +10,8 @@ Use this file for step 4 and step 5: design primary keys and secondary indexes.
 - Key values
 - Global secondary indexes
 - Overloaded GSIs
+- Concatenated keys
+- How the guidance changed
 - Local secondary indexes
 - Projections
 
@@ -29,6 +31,11 @@ The partition key does two jobs:
 
 Choose a value with many distinct values and even traffic, for example a customer, a device or a venue identifier.
 Do not choose a value with few distinct values, unless the traffic is low. Examples are a status, a date or a constant.
+
+Put the authorization scope in the partition key. This is the identifier that the request proves before it reads or writes, for example a tenant, an account or a board.
+Then a request for a partition that the caller cannot prove returns nothing, and a guessed child identifier cannot reach another tenant's data.
+Do not key data under a child identifier from the URL when the request proves a different scope.
+Data that must cross tenants goes in its own table, with its own access rules.
 
 ## Sort key
 
@@ -69,6 +76,7 @@ Rules for every GSI:
 - An item enters a GSI only when it has all the key attributes of that GSI. Use this to make a sparse index. See [filtering.md](filtering.md).
 - A GSI keyed on attributes that every item of a type has holds every item of that type. For a sparse index, use a key attribute that only the matching items have. For example, set `blockedAt` only on blocked tasks, and remove it when a task is no longer blocked.
 - Each GSI that a write changes costs its own write units. An index with many entries on a frequently written entity increases write cost.
+- A change to a GSI key value is a delete and a put in the index, so it costs two index writes. Do not key a GSI on a value that changes on most writes.
 - GSI key values do not have to be unique. A GSI cannot enforce uniqueness.
 - A table can have 20 GSIs by default. See [limits.md](limits.md).
 
@@ -76,26 +84,35 @@ Rules for every GSI:
 
 An overloaded GSI holds more than one entity type. Its key attributes are strings, such as `GSI1PK` and `GSI1SK`, and each entity fills them differently.
 
-Use an overloaded GSI only when one Query on the index must return more than one entity type.
-For example, a venue and its reviews share an item collection of the index. The venue's base item collection already serves a different relationship.
-In that case:
+Use an overloaded GSI when one Query on the index must return several entity types. This happens when the base item collection already serves a different pattern.
+For example, the base table pre-joins a venue with its upcoming events, and a second page reads the venue with its reviews. The reviews and the venue share an item collection in `GSI1`.
+State the saving in the entity chart: the requests that it removes for each call. See the test in SKILL.md and the patterns in [single-table-patterns.md](single-table-patterns.md).
+
+When a GSI is overloaded:
 
 - Name the attributes by number: `GSI1PK` and `GSI1SK` for `GSI1`.
 - Give each index its own attributes. Do not use the base table `SK` as a GSI sort key, even when the values are the same. A later entity can need a different value.
 - Put the entity type at the start of each value, as in the base table.
+- Write a chart for the index, with one row for each entity type that it holds.
 
-<details>
-<summary>Older pattern: overload a few generic GSIs, and concatenate values in their keys</summary>
+Do not overload a GSI only to have fewer indexes. Each GSI write costs the same in one index or in two, and a dedicated GSI is easier to read and to change.
 
-Guidance from about 2019 to 2024 overloaded a small number of GSIs for all entities. The DynamoDB Book (2020) is an example. These GSIs had generic `GSI<n>PK` and `GSI<n>SK` attributes.
-It concatenated values into one string, for example `STATUS#<status>#<date>`, to filter and sort on two values.
-The reasons were a lower GSI quota, capacity that was provisioned for each index, and keys of one attribute.
-The quota is now 20, and on-demand capacity removed the planning for each index. Since November 2025, each GSI key part accepts up to four attributes.
-A concatenated key is still correct in a base table and in an LSI, because their keys have one sort attribute.
-It is also correct for a key with more than four parts, and in a table that already uses it.
-Source: https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/GSI.DesignPattern.MultiAttributeKeys.html
+## Concatenated keys
 
-</details>
+A concatenated key puts several values in one string, for example `OPEN#2026-03-14T09:30:00.000Z`.
+Use one in the base table and in an LSI, because their sort keys have one attribute.
+Also use one in an overloaded GSI, and for a key with more than four parts.
+In a dedicated GSI, use a multi-attribute key, because it needs no new attribute and no backfill.
+
+## How the guidance changed
+
+The DynamoDB Book (2020) overloaded a small number of GSIs for all entities, with generic `GSI<n>PK` and `GSI<n>SK` attributes and concatenated values.
+The practice came from a time with a lower GSI quota, capacity that was provisioned for each index, and GSI keys of one attribute.
+The quota is now 20, on-demand capacity shares capacity across indexes, and since November 2025 each GSI key part accepts up to four attributes.
+AWS now prefers a dedicated GSI for each access pattern. The book's overloaded GSI is still the best design when one Query must return several entity types.
+Sources:
+https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/GSI.DesignPattern.MultiAttributeKeys.html
+https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/bp-gsi-overloading.html
 
 ## Local secondary indexes
 

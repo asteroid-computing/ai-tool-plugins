@@ -1,6 +1,6 @@
 # Anti-patterns
 
-Use this file to review a design, or to check your own design before step 7.
+Use this file to review a design, or to check your own design before step 9.
 Each entry gives the error, why it fails, and the fix.
 
 ## Contents
@@ -26,11 +26,23 @@ Fix: put entities that an access pattern reads together in one table. See [table
 Why it fails: unrelated entities then share one backup policy, one encryption key, one table class and one stream.
 Fix: separate them when no access pattern reads them together. See [table-boundaries.md](table-boundaries.md).
 
+**A table split on an assumed operational need.**
+Why it fails: the split costs a request on each read that needs both tables, for a need that nobody stated.
+Fix: ask for the needs. If no one can answer, write the defaults as assumptions and keep the entities together.
+
+**No query pattern library, or code that reads the table outside it.**
+Why it fails: nobody can see how the entities are designed to be used. New code then adds reads that the keys do not serve, such as a Scan or a filter.
+Fix: write the library, and serve each entry with one named data access function. See [pattern-library.md](pattern-library.md).
+
 ## Keys
 
 **A value that changes in a primary key**, for example `updatedAt`, a score or a status.
 Why it fails: DynamoDB cannot update a key attribute. Each change needs a delete and a put, and other items can point to the old key.
 Fix: use a stable identifier in the primary key, and put the changing value in a GSI key. See [keys-and-indexes.md](keys-and-indexes.md).
+
+**A partition key that is not the authorization scope**, for example comments keyed by a card identifier from the URL when the request proves only the board.
+Why it fails: a caller who learns a child identifier from another tenant can read that child's data. A check in each request is easy to forget on one path.
+Fix: put the authorization scope in the partition key, and the child identifier in the sort key. See [keys-and-indexes.md](keys-and-indexes.md).
 
 **A key that the request cannot build.** For example, a creation time in the key of an item that a URL finds by its identifier.
 Why it fails: each read must first find the missing value, often with a second request or a Scan.
@@ -136,6 +148,10 @@ Fix: serve as many patterns as possible with the base table keys first.
 Why it fails: the index holds every item, so it filters nothing and costs a write on each change.
 Fix: key the index on an attribute that only the matching items have. See [filtering.md](filtering.md).
 
-**An overloaded GSI when each query reads one entity type.**
-Why it fails: generic attributes and concatenated values make the keys hard to read and to change, with no read benefit.
-Fix: use a dedicated GSI with multi-attribute keys. See [keys-and-indexes.md](keys-and-indexes.md).
+**An overloaded key or GSI with no stated saving**, for example two unrelated patterns in `GSI1` to save an index.
+Why it fails: generic attributes and concatenated values make the keys hard to read and to change. New attributes need backfills. The saving is zero, because each index write costs the same in one GSI or in two.
+Fix: use a dedicated GSI with descriptive multi-attribute keys. Overload only when one Query returns several entity types. See the test in SKILL.md.
+
+**Generic key names on a table or index that holds one entity type.**
+Why it fails: `PK`, `SK` and `GSI1PK` hide what the key holds, with no benefit.
+Fix: name the key for its value, for example `memberId` or `loansByCopy`.
