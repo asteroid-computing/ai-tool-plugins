@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: payroll-table-boundaries
+expected_outcome: |
+  design.md holds a DynamoDB design for a multi-tenant payroll service. It splits tables only for operational needs that the prompt states, keeps entities that one page reads together in one item collection, and records the unstated needs as assumptions. Every key for tenant data carries the tenant from the session. The pay-run write burst is checked against partition and API limits. Every read and write is given as an exact request.

@@ -1,15 +1,30 @@
 # Relationships
 
-Use this file to model a one-to-one, a one-to-many or a many-to-many relationship.
+Use this file for step 5: model each relationship, and decide which values to copy between items.
 DynamoDB has no joins.
-Thus, store related items so that one request returns them, or accept a second request and state why.
+Thus, store related items so that one request returns them, or accept more requests and state why.
 
 ## Contents
 
+- Aggregate choice
 - One-to-one
 - One-to-many: decision order
 - Many-to-many: decision order
-- Copies of data
+- Denormalisation
+
+## Aggregate choice
+
+For each parent and its children, choose how tightly to store them:
+
+| Choice                                                       | Use it when                                                                                                 | Cost                                             |
+| ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| Embed the children in the parent item                        | The children are read only with the parent, their number has a small limit, and they change with the parent | Each change of one child rewrites the whole item |
+| Item collection: parent and children under one partition key | A pattern reads the parent with its children, the children are many or change on their own                  | One more item type in the collection             |
+| Separate: the children have their own partition key          | No pattern reads the parent with its children, or the children are written by their own identifier          | A second request when a page needs both          |
+
+No single number decides the choice.
+A high share of reads that need both pushes toward embedding or a collection.
+Large items, many independent child writes, and an unlimited number of children push toward separate items.
 
 ## One-to-one
 
@@ -36,12 +51,16 @@ Give the children the partition key of the parent, and a sort key that orders th
 One Query on the partition key returns the parent and its children.
 A sort key condition such as `begins_with(SK, "REVIEW#")` returns the children without the parent.
 Use this strategy when an access pattern reads the parent with its children.
-Put the parent item at the end of the collection that the read starts from. See [sorting-and-pagination.md](sorting-and-pagination.md).
+Put the parent item at the end of the collection that the read starts from. See [single-table-patterns.md](single-table-patterns.md).
+
+In a table of one entity type, the same idea is an identifying relationship: the parent identifier is the partition key and the child identifier is the sort key. This serves "children of a parent" with no GSI.
+The exception is a frequent write that has only the child's identifier, for example a webhook for one order line. `UpdateItem` needs the full key. Then key the child by its own identifier, and put the parent identifier in a GSI.
 
 **3. Children in the parent's item collection, in a GSI.**
 Give each child its own base table key, and give the parent and the children the same GSI partition key.
 Use this strategy in two cases. The parent's base item collection already serves a different relationship. Or each child needs its own base key, for example for uniqueness.
 Do not add many children to a base collection that another access pattern reads, because the Query must then read past them.
+If no pattern reads the parent with these children, use a dedicated GSI on the children only.
 
 **4. Hierarchical sort key.**
 Put the levels of a hierarchy in the sort key, from the top level down, for example `<region>#<city>#<siteId>`.
@@ -67,8 +86,9 @@ Use this when the list has a known upper limit and the copied fields do not chan
 
 **2. Relationship item with an inverted index.**
 Store one item for each relationship, in the item collection of one entity: `PK = SHIFT#<shiftId>`, `SK = VOLUNTEER#<volunteerId>`.
-Give the relationship item the swapped values in a GSI: partition key `volunteerId`, sort key `shiftId`.
+Give the relationship item the swapped values in a GSI.
 The base table then gives the volunteers of a shift, and the GSI gives the shifts of a volunteer.
+Use one inverse GSI for each relationship. In a table of this relationship only, give it descriptive keys, for example `volunteerId` and `shiftId`. In a shared table, see [single-table-patterns.md](single-table-patterns.md).
 Put on the relationship item only the fields that do not change, for example the sign-up time.
 Read the fields that change from the entity items.
 Use this strategy for most many-to-many relationships.
@@ -82,15 +102,30 @@ This is two requests, but the second is one batch, not one request for each item
 **4. Entity graph.**
 Store each node as several items, one for each relationship type. Use a GSI to group the items by the related value.
 Use this only for data with many relationship types between many node types.
-It is rarely needed.
+It is rarely needed. For queries that follow many hops, use a graph database such as Amazon Neptune.
 
-## Copies of data
+## Denormalisation
 
-A copy of a parent's field on a child item removes a read, but each change of the field must update every copy.
-Before you copy a field, answer two questions:
+Denormalisation stores data in the shape that a read needs, so that the read does not join.
+It has two forms:
 
-- Does the field change? A field that never changes, such as a name at the time of an order, is safe to copy.
-- If it changes, how often, and how many items hold a copy? A rare change to a few items is acceptable. A frequent change to many items is not.
+- **A complex attribute:** related data as a list or map on one item. This is strategy 1 above.
+- **A copy:** a value of one item stored on other items, for example a member's name on each review.
 
-Write each copy and its update path in the notes of the entity chart.
-If a change must update all copies together, use a transaction and check the transaction limit in [limits.md](limits.md).
+Copy a value only when all these conditions are true:
+
+1. An access pattern reads the copy, and the copy removes a request from it. A copy that no read uses is cost with no benefit.
+2. The value never changes, or it changes rarely and few items hold a copy.
+3. The design names the update path of each copy.
+
+Choose the update path from the number of copies:
+
+| Copies of one value                   | Update path                                                                                              |
+| ------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| A few, with a known limit             | Update them in the same transaction as the source. Check the transaction limit in [limits.md](limits.md) |
+| Many, and a short delay is acceptable | A stream consumer updates them after the source changes. It must be safe to run twice                    |
+| A curated set, such as a front page   | Rewrite the whole item when an editor changes the set                                                    |
+| Any, and the copy is a snapshot       | Do not update. State that the copy records the value at that time, for example a price on an order       |
+
+Do not copy a value that changes often into many items. Read it from its source item with `BatchGetItem` instead.
+Write each copy and its update path in the notes of the entity chart and in the write entries of the query pattern library.

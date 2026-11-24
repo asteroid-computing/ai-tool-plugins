@@ -62,14 +62,14 @@ Before a design depends on a value, open its source and check it.
 
 ## Throughput
 
-| Limit                    | Value                                                                                     | Source                                                                                        |
-| ------------------------ | ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| One partition            | 3,000 read units and 1,000 write units each second                                        | https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/bp-partition-key-design.html |
-| On-demand table          | 40,000 read and 40,000 write request units each second by default; you can request more   | https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ServiceQuotas.html           |
-| New on-demand table      | 4,000 writes and 12,000 reads each second at once; up to double the previous peak at once | https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/on-demand-capacity-mode.html |
-| Change to on-demand mode | 4 times in a rolling 24 hours                                                             | https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/capacity-mode.html           |
-| Provisioned decreases    | 4 at the start of a UTC day, then 1 each hour, up to 27 a day                             | https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ServiceQuotas.html           |
-| Prices                   | See the pricing page; they differ by Region                                               | https://aws.amazon.com/dynamodb/pricing/                                                      |
+| Limit                    | Value                                                                                     | Source                                                                                            |
+| ------------------------ | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| One partition            | 3,000 read units and 1,000 write units each second                                        | https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/bp-partition-key-design.html     |
+| On-demand table          | 40,000 read and 40,000 write request units each second by default; you can request more   | https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ServiceQuotas.html               |
+| New on-demand table      | 4,000 writes and 12,000 reads each second at once; up to double the previous peak at once | https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/on-demand-capacity-mode.html     |
+| Change to on-demand mode | 4 times in a rolling 24 hours; a change back to provisioned mode is allowed at any time   | https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/bp-switching-capacity-modes.html |
+| Provisioned decreases    | 4 at the start of a UTC day, then 1 each hour, up to 27 a day                             | https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ServiceQuotas.html               |
+| Prices                   | See the pricing page; they differ by Region                                               | https://aws.amazon.com/dynamodb/pricing/                                                          |
 
 ## Expiry, streams and storage
 

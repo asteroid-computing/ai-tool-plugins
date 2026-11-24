@@ -68,7 +68,7 @@ Use a filter expression only in these cases:
 - The item collection is small, so the waste is small, for example less than 100 KB.
 - It removes items whose TTL time has passed but which DynamoDB has not deleted yet. TTL deletion can take days.
 
-Write the reason in the notes of the access-pattern chart.
+Write the reason in the notes of the query pattern library.
 Measure the read cost in production.
 If the filter wastes capacity, move the condition into a key. See [migrations.md](migrations.md).
 
