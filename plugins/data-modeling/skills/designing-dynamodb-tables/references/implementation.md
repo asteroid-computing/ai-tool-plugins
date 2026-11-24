@@ -39,7 +39,8 @@ The data access layer is the schema.
 
 ## Expressions
 
-- Use expression attribute names, such as `#status`, for every attribute name. Many common words are reserved words, for example `status`, `name`, `count`, `date` and `text`. Names with a dot or a hyphen need them too.
+- Use expression attribute names, such as `#status`, for every attribute name. Many common words are reserved words, for example `status`, `name`, `count`, `date`, `day`, `capacity` and `text`. Names with a dot or a hyphen need them too.
+- Give each expression attribute value a name of letters and digits after the colon, for example `:minusOne`. A name such as `:-1` is not valid.
 - Use expression attribute values for every value.
 - Check each key condition against sample keys in sorted order. See [sorting-and-pagination.md](sorting-and-pagination.md).
 
