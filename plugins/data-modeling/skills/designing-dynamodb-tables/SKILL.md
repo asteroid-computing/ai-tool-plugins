@@ -145,7 +145,7 @@ Do each check for each entry of the library and each row of the entity chart.
 3. The request can build each key value from the inputs of its access pattern.
 4. The partition key of each item holds its authorization scope, or the notes state why not.
 5. No primary key contains a value that changes.
-6. Each unique value is in a primary key, and each write that creates it has a condition expression.
+6. Each unique value is in a primary key, and each write that creates it has a condition expression. Each update of an existing item has `attribute_exists(PK)`, so that it cannot create a partial item.
 7. Each list or map attribute that grows has a stated upper limit, well below the item size limit.
 8. Each read that must see its own write uses the base table with a strongly consistent read.
 9. No partition key can receive more traffic than one partition can serve. If one can, the design shards it.

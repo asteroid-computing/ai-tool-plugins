@@ -89,6 +89,7 @@ An offset reads and pays for every item that it skips.
 - Return `LastEvaluatedKey`, or the key of the last item, to the client as an opaque cursor. Encode it, for example as base64 of JSON.
 - To get the next page, pass the cursor as `ExclusiveStartKey`, or use it as the bound of the key condition.
 - When you decode a cursor, check that it belongs to the same item collection as the request. Otherwise, a client can read a different collection.
+- A job that walks many items, such as a monthly run over all employees, pages over a key that does not change. An identifier is such a key. A key that can change, such as a surname, can move an item behind the cursor, and the job then misses it.
 - Only a missing `LastEvaluatedKey` shows the last page. A page can have no items and still have a `LastEvaluatedKey`.
 - To get the previous page, read in the opposite direction from the first item of the current page.
 - A URL can hold the cursor as a value from the item, for example `?before=<itemId>`, if that value is not secret.

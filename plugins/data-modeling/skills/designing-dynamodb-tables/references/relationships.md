@@ -128,4 +128,5 @@ Choose the update path from the number of copies:
 | Any, and the copy is a snapshot       | Do not update. State that the copy records the value at that time, for example a price on an order       |
 
 Do not copy a value that changes often into many items. Read it from its source item with `BatchGetItem` instead.
+Do copy a display value that rarely changes, such as a person's name, when the copy removes a serial `BatchGetItem` from a frequent read. A second request on each read costs more than a rare update of the copies.
 Write each copy and its update path in the notes of the entity chart and in the write entries of the query pattern library.
